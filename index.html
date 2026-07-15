@@ -547,8 +547,18 @@ function parseCSV(text) {
 
 function cleanNum(v) {
   if (v === null || v === undefined || v === '') return 0;
-  const s = String(v).replace(/[^0-9.\-]/g, '');
-  return parseFloat(s) || 0;
+  let s = String(v).trim();
+  if (!s) return 0;
+  const isPct = s.includes('%');
+  // Format Google Sheets (locale Indonesia): titik = pemisah ribuan, koma = desimal
+  // Contoh: "1.201.379.670" -> 1201379670 · "94,3%" -> 0.943 · "15,54" -> 15.54
+  s = s.replace(/[^\d,.\-]/g, '');
+  if (!s) return 0;
+  s = s.replace(/\./g, '').replace(',', '.');
+  let n = parseFloat(s);
+  if (isNaN(n)) return 0;
+  if (isPct) n = n / 100;
+  return n;
 }
 
 // ─── FETCH XLSX FILE FROM GOOGLE DRIVE (file biasa, bukan Google Sheets asli) ─
