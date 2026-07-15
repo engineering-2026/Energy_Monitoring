@@ -1,0 +1,1553 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Energy Monitor | Wisma 46</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230F3D2E'/%3E%3Crect x='12' y='24' width='14' height='30' fill='%23bbf7d0'/%3E%3Crect x='28' y='12' width='16' height='42' fill='%23ffffff'/%3E%3Crect x='46' y='30' width='10' height='24' fill='%2384CC16'/%3E%3Crect x='15' y='29' width='3' height='3' fill='%230F3D2E'/%3E%3Crect x='21' y='29' width='3' height='3' fill='%230F3D2E'/%3E%3Crect x='15' y='36' width='3' height='3' fill='%230F3D2E'/%3E%3Crect x='21' y='36' width='3' height='3' fill='%230F3D2E'/%3E%3Crect x='15' y='43' width='3' height='3' fill='%230F3D2E'/%3E%3Crect x='21' y='43' width='3' height='3' fill='%230F3D2E'/%3E%3Crect x='32' y='18' width='3' height='3' fill='%231D9E75'/%3E%3Crect x='38' y='18' width='3' height='3' fill='%231D9E75'/%3E%3Crect x='32' y='25' width='3' height='3' fill='%231D9E75'/%3E%3Crect x='38' y='25' width='3' height='3' fill='%231D9E75'/%3E%3Crect x='32' y='32' width='3' height='3' fill='%231D9E75'/%3E%3Crect x='38' y='32' width='3' height='3' fill='%231D9E75'/%3E%3Crect x='32' y='39' width='3' height='3' fill='%231D9E75'/%3E%3Crect x='38' y='39' width='3' height='3' fill='%231D9E75'/%3E%3Cpath d='M51 34c-3 2-4 6-2 9 3-1 5-4 5-7 0 3 2 5 4 6 1-4-1-7-4-9-1 0-2 0-3 1z' fill='%23ffffff'/%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#f2f7f3;--card:#fff;--nav:#0F3D2E;--nav2:#14532D;--pri:#1D9E75;--t:#12261d;--t2:#5f7267;--bd:#dbe7de;--red:#dc2626;--amb:#d97706;--blu:#0d9488;--elec:#E65100;--water:#0277BD;--co2:#2E7D32;--leaf:#84CC16;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--t);display:flex;height:100vh;overflow:hidden;font-size:13px;}
+.sb{width:210px;background:linear-gradient(180deg,var(--nav) 0%,var(--nav2) 100%);display:flex;flex-direction:column;flex-shrink:0;}
+.sb-logo{padding:13px 15px 10px;border-bottom:1px solid rgba(255,255,255,.08);}
+.sb-logo h1{font-size:13px;font-weight:700;color:#fff;}
+.sb-logo p{font-size:9px;color:rgba(255,255,255,.45);margin-top:2px;}
+.eco-badge{display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-size:8.5px;font-weight:600;color:#bbf7d0;background:rgba(132,204,22,.15);border:1px solid rgba(132,204,22,.35);padding:2px 7px;border-radius:99px;}
+.sb-nav{flex:1;padding:5px 0;overflow-y:auto;}
+.nb{display:flex;align-items:center;gap:8px;width:100%;padding:8px 13px;background:none;border:none;color:rgba(255,255,255,.55);font-size:11.5px;cursor:pointer;text-align:left;border-left:3px solid transparent;transition:all .15s;}
+.nb:hover{background:rgba(255,255,255,.07);color:#fff;}
+.nb.on{background:rgba(255,255,255,.11);color:#fff;border-left-color:var(--pri);}
+.nb .ic{font-size:13px;flex-shrink:0;transition:transform .15s ease;}
+.nb:hover .ic{transform:translateX(2px) scale(1.1);}
+.sb-sect{font-size:8.5px;color:rgba(255,255,255,.28);padding:9px 13px 3px;text-transform:uppercase;letter-spacing:.8px;font-weight:600;}
+.sb-sep{height:1px;background:rgba(255,255,255,.07);margin:4px 11px;}
+.sb-foot{padding:9px 13px;border-top:1px solid rgba(255,255,255,.07);}
+.sb-foot .role{font-size:11px;font-weight:600;color:#fff;}
+.sb-foot .org{font-size:9px;color:rgba(255,255,255,.35);margin-top:1px;}
+.mn{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{background:var(--card);border-bottom:1px solid var(--bd);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.topbar h2{font-size:13px;font-weight:600;}
+.topbar p{font-size:9.5px;color:var(--t2);}
+.tb-r{display:flex;align-items:center;gap:6px;}
+.syb{display:flex;align-items:center;gap:5px;font-size:9.5px;padding:3px 8px;border-radius:99px;border:1px solid;cursor:default;}
+.syb.live{background:#f0fdf4;color:#166534;border-color:#bbf7d0;}
+.syb.local{background:#fefce8;color:#854d0e;border-color:#fde68a;}
+.syb.err{background:#fef2f2;color:#991b1b;border-color:#fecaca;}
+.dot{width:5px;height:5px;border-radius:50%;}
+.dot.g{background:#22c55e;animation:pl 2s infinite;}
+.dot.y{background:#eab308;}
+.dot.r{background:#ef4444;}
+@keyframes pl{0%,100%{opacity:1}50%{opacity:.3}}
+.btn{padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;border:1px solid var(--bd);background:var(--card);color:var(--t);}
+.btn:hover{background:#f9fafb;}
+.btn-p{background:var(--pri);color:#fff;border-color:var(--pri);}
+.btn-p:hover{background:#0F6E56;}
+.ct{flex:1;overflow-y:auto;padding:12px 16px;}
+.vw{display:none;} .vw.on{display:block;animation:vwIn .25s ease;}
+@keyframes vwIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+/* SETTINGS PANEL */
+.set-panel{position:fixed;right:-340px;top:0;bottom:0;width:340px;background:var(--card);border-left:1px solid var(--bd);z-index:100;transition:right .3s;display:flex;flex-direction:column;}
+.set-panel.open{right:0;}
+.set-head{padding:14px 16px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center;}
+.set-head h3{font-size:13px;font-weight:600;}
+.set-body{flex:1;overflow-y:auto;padding:14px 16px;}
+.set-group{margin-bottom:16px;}
+.set-label{font-size:11px;font-weight:600;color:var(--t2);margin-bottom:5px;display:flex;align-items:center;gap:5px;}
+.set-input{width:100%;padding:7px 10px;border:1px solid var(--bd);border-radius:7px;font-size:12px;color:var(--t);}
+.set-input:focus{outline:none;border-color:var(--pri);box-shadow:0 0 0 3px rgba(29,158,117,.1);}
+.set-hint{font-size:10px;color:var(--t2);margin-top:4px;line-height:1.5;}
+.set-hint code{background:#f3f4f6;padding:1px 5px;border-radius:3px;font-size:10px;}
+.set-divider{height:1px;background:var(--bd);margin:14px 0;}
+.set-foot{padding:12px 16px;border-top:1px solid var(--bd);}
+.set-msg{font-size:11px;margin-top:8px;min-height:18px;}
+.set-msg.ok{color:var(--pri);}
+.set-msg.err{color:var(--red);}
+
+/* MAIN CONTENT */
+.kpi4{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:12px;}
+.kpi3{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:12px;}
+.kc{background:var(--card);border-radius:9px;padding:11px 13px;border:1px solid var(--bd);position:relative;overflow:hidden;transition:transform .18s ease,box-shadow .18s ease;}
+.kc:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(15,61,46,.1);}
+.kc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;}
+.kc::after{position:absolute;right:10px;top:10px;font-size:15px;opacity:.35;}
+.kc.elec::before{background:var(--elec);} .kc.elec::after{content:'⚡';}
+.kc.water::before{background:var(--water);} .kc.water::after{content:'💧';}
+.kc.co2::before{background:var(--co2);} .kc.co2::after{content:'🌍';}
+.kc.pri::before{background:var(--pri);} .kc.pri::after{content:'📐';}
+.kc.amb::before{background:var(--amb);} .kc.amb::after{content:'📊';}
+.kc.red::before{background:var(--red);} .kc.red::after{content:'⚠️';}
+.kc.blu::before{background:var(--blu);} .kc.blu::after{content:'❄️';}
+.kc-l{font-size:9px;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-bottom:4px;}
+.kc-v{font-size:20px;font-weight:700;line-height:1;margin-bottom:2px;}
+.kc-s{font-size:9.5px;color:var(--t2);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.cd{background:var(--card);border-radius:9px;padding:12px;border:1px solid var(--bd);transition:box-shadow .18s ease;}
+.cd:hover{box-shadow:0 6px 16px rgba(15,61,46,.08);}
+.cd-t{font-size:11px;font-weight:600;margin-bottom:8px;}
+.tw{background:var(--card);border-radius:9px;overflow:hidden;border:1px solid var(--bd);margin-bottom:10px;}
+.tw-h{padding:9px 13px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;}
+.tw-title{font-size:11px;font-weight:600;}
+table{width:100%;border-collapse:collapse;font-size:11px;}
+th{padding:6px 9px;text-align:left;font-size:9.5px;font-weight:600;color:var(--t2);background:#f9fafb;border-bottom:1px solid var(--bd);white-space:nowrap;}
+td{padding:6px 9px;border-bottom:1px solid #f9fafb;vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr{transition:background .12s ease;}
+tr:hover td{background:#f0fdf4;}
+.badge{font-size:9px;padding:2px 6px;border-radius:99px;font-weight:600;}
+.be{background:#dcfce7;color:#166534;}
+.ba{background:#dbeafe;color:#1d4ed8;}
+.br{background:#fee2e2;color:#991b1b;}
+
+/* LOADING */
+.lo{position:fixed;inset:0;background:linear-gradient(135deg,var(--nav) 0%,var(--nav2) 100%);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;z-index:200;transition:opacity .4s;}
+.lo.hd{opacity:0;pointer-events:none;}
+.lsp{width:32px;height:32px;border:3px solid rgba(255,255,255,.15);border-top-color:#fff;border-radius:50%;animation:sp .8s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg)}}
+.lo-txt{color:rgba(255,255,255,.7);font-size:11px;}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:99px;}
+/* NOTIFICATION */
+.notif-wrap{position:relative;}
+.notif-btn{position:relative;padding:5px 10px;border-radius:6px;font-size:14px;cursor:pointer;border:1px solid var(--bd);background:var(--card);}
+.notif-btn:hover{background:#f9fafb;}
+.notif-badge{position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;background:var(--red);color:#fff;font-size:9px;font-weight:700;border-radius:99px;display:flex;align-items:center;justify-content:center;padding:0 3px;display:none;}
+.notif-badge.show{display:flex;}
+.notif-panel{position:absolute;right:0;top:calc(100% + 6px);width:340px;background:var(--card);border:1px solid var(--bd);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:90;display:none;max-height:400px;overflow-y:auto;}
+.notif-panel.open{display:block;}
+.notif-head{padding:10px 14px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;}
+.notif-head h4{font-size:12px;font-weight:600;}
+.notif-item{padding:10px 14px;border-bottom:1px solid #f9fafb;display:flex;gap:10px;align-items:flex-start;}
+.notif-item:last-child{border-bottom:none;}
+.notif-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+.notif-body .nt{font-size:11.5px;font-weight:600;color:var(--t);}
+.notif-body .ns{font-size:10px;color:var(--t2);margin-top:2px;}
+.notif-empty{padding:20px 14px;text-align:center;font-size:11px;color:var(--t2);}
+/* AI */
+.ai-wrap{display:flex;flex-direction:column;height:calc(100vh - 96px);}
+.ai-msgs{flex:1;overflow-y:auto;padding:0 0 10px 0;display:flex;flex-direction:column;gap:8px;}
+.ai-msg{display:flex;gap:8px;align-items:flex-start;}
+.ai-msg.user{flex-direction:row-reverse;}
+.ai-bubble{max-width:80%;padding:9px 12px;border-radius:10px;font-size:12px;line-height:1.6;}
+.ai-msg.ai .ai-bubble{background:var(--card);border:1px solid var(--bd);color:var(--t);}
+.ai-msg.user .ai-bubble{background:var(--pri);color:#fff;}
+.ai-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:2px;}
+.ai-msg.ai .ai-avatar{background:#f0fdf4;border:1px solid #bbf7d0;}
+.ai-msg.user .ai-avatar{background:var(--pri);}
+.ai-foot{display:flex;gap:6px;padding-top:8px;border-top:1px solid var(--bd);}
+.ai-input{flex:1;padding:8px 12px;border:1px solid var(--bd);border-radius:8px;font-size:12px;resize:none;height:42px;font-family:inherit;}
+.ai-input:focus{outline:none;border-color:var(--pri);}
+.ai-send{padding:0 16px;background:var(--pri);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;}
+.ai-send:hover{background:#0F6E56;}
+.ai-send:disabled{opacity:.5;cursor:not-allowed;}
+.ai-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
+.ai-chip{font-size:10px;padding:4px 9px;border-radius:99px;border:1px solid var(--bd);background:var(--card);cursor:pointer;color:var(--t2);}
+.ai-chip:hover{background:#f0fdf4;border-color:var(--pri);color:var(--pri);}
+.ai-key-notice{background:#fefce8;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;font-size:11px;color:#854d0e;margin-bottom:10px;}
+.typing-dot{display:inline-flex;gap:3px;}
+.typing-dot span{width:5px;height:5px;background:var(--t2);border-radius:50%;animation:td 1.2s infinite;}
+.typing-dot span:nth-child(2){animation-delay:.2s;}
+.typing-dot span:nth-child(3){animation-delay:.4s;}
+@keyframes td{0%,60%,100%{opacity:.2}30%{opacity:1}}
+
+</style>
+</head>
+<body>
+
+<div class="lo" id="lo">
+  <div class="lsp"></div>
+  <div class="lo-txt" id="lo-txt">Menghubungkan ke Google Sheets...</div>
+</div>
+
+<!-- SETTINGS PANEL -->
+<div class="set-panel" id="set-panel">
+  <div class="set-head">
+    <h3>⚙️ Koneksi Data</h3>
+    <button class="btn" onclick="closeSet()">✕</button>
+  </div>
+  <div class="set-body">
+    <div style="font-size:11px;color:#166534;line-height:1.6;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 12px;margin-bottom:12px;">
+      ✅ <b>Sudah terhubung default</b> ke Google Sheets (Sheet ID diawali <code>1JU_y9ox6...</code>, GID <code>750612645</code>, tab "Energy Management Monitoring") — sudah dikonfirmasi bisa diakses publik. 7 tabel di dalamnya (Electric, Water, Electric+Water, IKE&CO₂, Chiller/Others, Landlord Water) otomatis kebaca dari 1 GID ini.
+    </div>
+    <div class="set-group">
+      <div class="set-label">📋 Sheet ID (Google Sheets asli)</div>
+      <input class="set-input" id="cfg-sid" placeholder="Contoh: 1i3TBOdRk9RD...">
+      <div class="set-hint">Dari URL: <code>.../spreadsheets/d/<b>[SHEET_ID]</b>/edit</code></div>
+    </div>
+    <div class="set-group">
+      <div class="set-label">📊 GID — Sheet "Energy Management Monitoring"</div>
+      <input class="set-input" id="cfg-gid1" placeholder="Contoh: 1910046720">
+      <div class="set-hint">Klik tab ini di spreadsheet → lihat URL: <code>...edit?gid=<b>[ANGKA INI]</b></code></div>
+    </div>
+    <div class="set-divider"></div>
+    <div style="font-size:11px;color:#854d0e;line-height:1.6;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;margin-bottom:10px;">
+      🌬️ <b>Kualitas Udara</b> ada di 3 tab terpisah (April/Mei/Juni 2026). Isi GID masing-masing tab di bawah — kosongkan yang belum ada datanya.
+    </div>
+    <div class="set-group">
+      <div class="set-label">🌬️ GID — Sheet "Kualitas udara April26"</div>
+      <input class="set-input" id="cfg-gid-aq-apr" placeholder="Contoh: 123456789">
+    </div>
+    <div class="set-group">
+      <div class="set-label">🌬️ GID — Sheet "Kualitas udara Mei26"</div>
+      <input class="set-input" id="cfg-gid-aq-mei" placeholder="Contoh: 234567891">
+    </div>
+    <div class="set-group">
+      <div class="set-label">🌬️ GID — Sheet "Kualitas udara Juni26"</div>
+      <input class="set-input" id="cfg-gid-aq-jun" placeholder="Contoh: 345678912">
+    </div>
+    <div class="set-divider"></div>
+    <div class="set-group">
+      <div class="set-label">📁 (Opsional) Google Drive File ID / Link .xlsx</div>
+      <input class="set-input" id="cfg-drive" placeholder="Tempel link Google Drive atau File ID">
+      <div class="set-hint">Dicoba hanya sebagai cadangan kedua jika Sheet ID di atas kosong — sering gagal karena CORS.</div>
+    </div>
+    <div class="set-group">
+      <div class="set-label">📋 Nama Sheet Utama (untuk jalur Drive)</div>
+      <input class="set-input" id="cfg-sheet1" placeholder="Energy Management Monitoring">
+    </div>
+    <div class="set-divider"></div>
+    <div class="set-group">
+      <div class="set-label">🔄 Auto-refresh</div>
+      <select class="set-input" id="cfg-refresh">
+        <option value="0">Mati (manual saja)</option>
+        <option value="5" selected>Setiap 5 menit</option>
+        <option value="10">Setiap 10 menit</option>
+        <option value="30">Setiap 30 menit</option>
+      </select>
+    </div>
+    <div class="set-divider"></div>
+    <div class="set-group">
+      <div class="set-label">🤖 Groq API Key (AI Assistant)</div>
+      <input class="set-input" id="cfg-gkey" type="password" placeholder="gsk_xxxxxxxxxxxxxxxxxxxx">
+      <div class="set-hint">Daftar gratis di <b>console.groq.com</b> → Create API Key.<br>Gratis 14.400 request/hari. Key disimpan di browser ini saja.</div>
+    </div>
+  </div>
+  <div class="set-foot">
+    <button class="btn btn-p" style="width:100%;" onclick="saveSet()">💾 Simpan & Refresh Data</button>
+    <div class="set-msg" id="set-msg"></div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<nav class="sb">
+  <div class="sb-logo">
+    <h1>⚡ Energy Monitor</h1>
+    <p>Wisma 46 Kota BNI · 2026</p>
+    <span class="eco-badge">🌿 Green Building</span>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-sect">Ringkasan</div>
+    <button class="nb on" onclick="go('db')"><span class="ic">📊</span>Dashboard</button>
+    <div class="sb-sect">OPEX Utilities</div>
+    <button class="nb" onclick="go('el')"><span class="ic">⚡</span>Electric</button>
+    <button class="nb" onclick="go('wa')"><span class="ic">💧</span>Water</button>
+    <button class="nb" onclick="go('ew')"><span class="ic">🔗</span>Electric + Water</button>
+    <div class="sb-sect">Energy Intelligence</div>
+    <button class="nb" onclick="go('ik')"><span class="ic">📐</span>IKE Monitor</button>
+    <button class="nb" onclick="go('co')"><span class="ic">🌍</span>CO₂ Emissions</button>
+    <button class="nb" onclick="go('aq')"><span class="ic">🌬️</span>Kualitas Udara</button>
+    <div class="sb-sect">Engineering Utilities</div>
+    <button class="nb" onclick="go('ch')"><span class="ic">❄️</span>Chiller & Listrik</button>
+    <button class="nb" onclick="go('aw')"><span class="ic">🚿</span>Air / Water</button>
+
+    <div class="sb-sep"></div>
+    <button class="nb" onclick="go('ai')"><span class="ic">🤖</span>AI Assistant</button>  </div>
+  <div class="sb-foot">
+    <div class="role">Engineering Wisma 46</div>
+    <div class="org">PT Swadharma Primautama</div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="mn">
+  <div class="topbar">
+    <div><h2 id="pt">Dashboard</h2><p id="last-upd">Memuat data...</p></div>
+    <div class="tb-r">
+      <div class="syb local" id="syb"><div class="dot y" id="sy-dot"></div><span id="sy-txt">Menghubungkan...</span></div>
+      <button class="btn" onclick="loadData(true)">🔄 Refresh</button>
+      <div class="notif-wrap">
+        <button class="notif-btn" onclick="toggleNotif()" title="Notifikasi">🔔<span class="notif-badge" id="nb-badge">0</span></button>
+        <div class="notif-panel" id="notif-panel">
+          <div class="notif-head"><h4>🔔 Notifikasi & Alert</h4><button class="btn" onclick="toggleNotif()">✕</button></div>
+          <div id="notif-list"><div class="notif-empty">Belum ada notifikasi</div></div>
+        </div>
+      </div>
+      <button class="btn btn-p" onclick="openSet()">⚙️ Pengaturan</button>
+    </div>
+  </div>
+  <div class="ct">
+
+    <div class="vw on" id="vw-db">
+      <div class="kpi4" id="db-kpi1"></div>
+      <div class="kpi4" id="db-kpi2"></div>
+      <div class="g2">
+        <div class="cd"><div class="cd-t">⚡ Electric — Budget vs Realisasi</div><div style="height:185px;"><canvas id="db-el"></canvas></div></div>
+        <div class="cd"><div class="cd-t">💧 Water — Budget vs Realisasi</div><div style="height:185px;"><canvas id="db-wa"></canvas></div></div>
+      </div>
+      <div class="g2">
+        <div class="cd"><div class="cd-t">📐 IKE Trend (kWh/m²)</div><div style="height:185px;"><canvas id="db-ik"></canvas></div></div>
+        <div class="cd"><div class="cd-t">🌍 CO₂ Emisi (Ton)</div><div style="height:185px;"><canvas id="db-co"></canvas></div></div>
+      </div>
+    </div>
+
+    <div class="vw" id="vw-el">
+      <div class="kpi4" id="el-kpi"></div>
+      <div class="g2">
+        <div class="cd"><div class="cd-t">Budget vs Realisasi (Rp M)</div><div style="height:200px;"><canvas id="el-c1"></canvas></div></div>
+        <div class="cd"><div class="cd-t">Usage % & Saving %</div><div style="height:200px;"><canvas id="el-c2"></canvas></div></div>
+      </div>
+      <div class="tw"><div class="tw-h"><span class="tw-title">⚡ Detail Electric 2026</span></div>
+      <table><thead><tr><th>Bulan</th><th>Anggaran (Rp)</th><th>Realisasi (Rp)</th><th>Usage %</th><th>Saving %</th><th>KPI</th></tr></thead><tbody id="el-tb"></tbody></table></div>
+    </div>
+
+    <div class="vw" id="vw-wa">
+      <div class="kpi4" id="wa-kpi"></div>
+      <div class="g2">
+        <div class="cd"><div class="cd-t">Budget vs Realisasi (Rp M)</div><div style="height:200px;"><canvas id="wa-c1"></canvas></div></div>
+        <div class="cd"><div class="cd-t">Usage % & Saving %</div><div style="height:200px;"><canvas id="wa-c2"></canvas></div></div>
+      </div>
+      <div class="tw"><div class="tw-h"><span class="tw-title">💧 Detail Water 2026</span></div>
+      <table><thead><tr><th>Bulan</th><th>Anggaran (Rp)</th><th>Realisasi (Rp)</th><th>Usage %</th><th>Saving %</th><th>KPI</th></tr></thead><tbody id="wa-tb"></tbody></table></div>
+    </div>
+
+    <div class="vw" id="vw-ew">
+      <div class="kpi4" id="ew-kpi"></div>
+      <div class="g2">
+        <div class="cd"><div class="cd-t">Combined Budget vs Realisasi (Rp M)</div><div style="height:200px;"><canvas id="ew-c1"></canvas></div></div>
+        <div class="cd"><div class="cd-t">Proporsi Electric vs Water</div><div style="height:200px;"><canvas id="ew-c2"></canvas></div></div>
+      </div>
+      <div class="tw"><div class="tw-h"><span class="tw-title">🔗 Electric + Water Combined 2026</span></div>
+      <table><thead><tr><th>Bulan</th><th>Total Anggaran</th><th>Total Realisasi</th><th>Electric</th><th>Water</th><th>Usage %</th><th>KPI</th></tr></thead><tbody id="ew-tb"></tbody></table></div>
+    </div>
+
+    <div class="vw" id="vw-ik">
+      <div class="kpi4" id="ik-kpi"></div>
+      <div class="g2">
+        <div class="cd"><div class="cd-t">kWh PLN vs Baseline 2025</div><div style="height:200px;"><canvas id="ik-c1"></canvas></div></div>
+        <div class="cd"><div class="cd-t">IKE Bulanan (kWh/m²) — Baseline SNI 03-6196-2000 (Gedung ber-AC)</div><div style="height:200px;"><canvas id="ik-c2"></canvas></div></div>
+      </div>
+      <div class="tw"><div class="tw-h"><span class="tw-title">📐 IKE Monitor 2026</span></div>
+      <table><thead><tr><th>Bulan</th><th>kWh PLN</th><th>Baseline 2025</th><th>Area Sewa m²</th><th>Occupancy%</th><th>IKE kWh/m²</th><th>kWh Landlord</th><th>kWh Tenant</th><th>Status</th></tr></thead><tbody id="ik-tb"></tbody></table>
+      <div style="margin-top:12px;padding:10px 12px;background:#f9fafb;border-radius:8px;font-size:10.5px;color:var(--t2);">
+        <b>Baseline operasional yang dipakai: 20 kWh/m²/bulan</b> — gedung perkantoran, sesuai standar ASEAN-USAID (240 kWh/m²/tahun) dan data acuan di spreadsheet Bapak Adi. Garis merah putus-putus di grafik = baseline ini.<br><br>
+        <b>Referensi tambahan (SNI 03-6196-2000 / Permen ESDM No.13/2012)</b> — klasifikasi lebih rinci untuk ruangan ber-AC, kWh/m²/bulan:
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">
+          <span style="background:#0d948822;color:#0d9488;border:1px solid #0d948855;border-radius:99px;padding:2px 8px;">Sangat Efisien ≤7.92</span>
+          <span style="background:#1D9E7522;color:#1D9E75;border:1px solid #1D9E7555;border-radius:99px;padding:2px 8px;">Efisien 7.92–12.08</span>
+          <span style="background:#84CC1622;color:#65890f;border:1px solid #84CC1655;border-radius:99px;padding:2px 8px;">Cukup Efisien 12.08–14.58</span>
+          <span style="background:#d9770622;color:#d97706;border:1px solid #d9770655;border-radius:99px;padding:2px 8px;">Agak Boros 14.58–19.17</span>
+          <span style="background:#dc262622;color:#dc2626;border:1px solid #dc262655;border-radius:99px;padding:2px 8px;">Boros 19.17–23.75</span>
+          <span style="background:#991b1b22;color:#991b1b;border:1px solid #991b1b55;border-radius:99px;padding:2px 8px;">Sangat Boros &gt;23.75</span>
+        </div>
+      </div>
+      </div>
+    </div>
+
+    <div class="vw" id="vw-co">
+      <div class="kpi4" id="co-kpi"></div>
+      <div class="g2">
+        <div class="cd"><div class="cd-t">CO₂ Emisi vs Baseline 2025 (Ton)</div><div style="height:200px;"><canvas id="co-c1"></canvas></div></div>
+        <div class="cd"><div class="cd-t">Saving CO₂ vs Baseline (%)</div><div style="height:200px;"><canvas id="co-c2"></canvas></div></div>
+      </div>
+      <div class="tw"><div class="tw-h"><span class="tw-title">🌍 CO₂ Emissions 2026 — Faktor: 0.85 kg/kWh</span></div>
+      <table><thead><tr><th>Bulan</th><th>kWh PLN</th><th>Faktor CO₂</th><th>Emisi (kg)</th><th>Emisi (Ton)</th><th>Baseline 2025 (Ton)</th><th>Saving %</th></tr></thead><tbody id="co-tb"></tbody></table></div>
+    </div>
+
+    <div class="vw" id="vw-aq">
+      <div class="kpi4" id="aq-kpi"></div>
+      <div class="g2">
+        <div class="cd"><div class="cd-t">AQI vs Baseline (50)</div><div style="height:200px;"><canvas id="aq-c1"></canvas></div></div>
+        <div class="cd"><div class="cd-t">CO₂ ppm vs Baseline (1000)</div><div style="height:200px;"><canvas id="aq-c2"></canvas></div></div>
+      </div>
+      <div class="tw"><div class="tw-h"><span class="tw-title">🌬️ Kualitas Udara Indoor — Apr–Jun 2026 (rata-rata, tanpa Outdoor)</span></div>
+      <table><thead><tr><th>Bulan</th><th>Suhu °C</th><th>RH %</th><th>HCHO mg/m³</th><th>PM2.5 µg/m³</th><th>TVOC mg/m³</th><th>CO ppm</th><th>CO₂ ppm</th><th>AQI</th><th>Status</th></tr></thead><tbody id="aq-tb"></tbody></table>
+      <div style="margin-top:12px;padding:10px 12px;background:#f9fafb;border-radius:8px;font-size:10.5px;color:var(--t2);" id="aq-baseline-note"></div>
+      </div>
+      <div class="tw"><div class="tw-h"><span class="tw-title">🔥 Lantai Perlu Perhatian — Bulan Terakhir (AQI tertinggi)</span></div>
+      <table><thead><tr><th>Lantai</th><th>Suhu °C</th><th>RH %</th><th>PM2.5 µg/m³</th><th>CO₂ ppm</th><th>AQI</th></tr></thead><tbody id="aq-floor-tb"></tbody></table></div>
+    </div>
+
+    <div class="vw" id="vw-ch">
+      <div class="kpi3" id="ch-kpi"></div>
+      <div class="g2">
+        <div class="cd"><div class="cd-t">Chiller — Planning vs Realisasi (MWh)</div><div style="height:200px;"><canvas id="ch-c1"></canvas></div></div>
+        <div class="cd"><div class="cd-t">Others — Planning vs Realisasi (MWh)</div><div style="height:200px;"><canvas id="ch-c2"></canvas></div></div>
+      </div>
+      <div class="tw"><div class="tw-h"><span class="tw-title">❄️ OPEX Engineering Utilities — Listrik (MWh)</span></div>
+      <table><thead><tr><th>Item</th><th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th><th>May</th><th>Jun</th><th>Q1 Plan</th><th>Q1 Real</th><th>Q2 Plan</th><th>Q2 Real</th><th>Progress</th></tr></thead><tbody id="ch-tb"></tbody></table></div>
+    </div>
+
+    <div class="vw" id="vw-aw">
+      <div class="kpi3" id="aw-kpi"></div>
+      <div class="g2">
+        <div class="cd"><div class="cd-t">Landlord Water — Planning vs Realisasi (m³)</div><div style="height:200px;"><canvas id="aw-c1"></canvas></div></div>
+        <div class="cd"><div class="cd-t">Progress Bulanan (%)</div><div style="height:200px;"><canvas id="aw-c2"></canvas></div></div>
+      </div>
+      <div class="tw"><div class="tw-h"><span class="tw-title">🚿 OPEX Engineering Utilities — Air (m³)</span></div>
+      <table><thead><tr><th>Item</th><th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th><th>May</th><th>Jun</th><th>Q1 Plan</th><th>Q1 Real</th><th>Progress</th></tr></thead><tbody id="aw-tb"></tbody></table></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="vw" id="vw-ai" style="padding:0;">
+    <div class="ai-wrap">
+      <div id="ai-key-notice" class="ai-key-notice" style="display:none;">
+        ⚠️ <b>Groq API Key belum diisi.</b> Buka <b>⚙️ Pengaturan</b> → isi Groq API Key → Simpan.<br>
+        Daftar gratis di <a href="https://console.groq.com" target="_blank" style="color:var(--pri);">console.groq.com</a> — 14.400 request/hari.
+      </div>
+      <div class="ai-chips" id="ai-chips">
+        <span class="ai-chip" onclick="askAI('Ringkasan konsumsi energi bulan ini')">📊 Ringkasan bulan ini</span>
+        <span class="ai-chip" onclick="askAI('Apakah nilai IKE sudah sesuai baseline 20 kWh/m² untuk gedung perkantoran?')">📐 Status IKE</span>
+        <span class="ai-chip" onclick="askAI('Bulan mana konsumsi listrik paling tinggi?')">⚡ Konsumsi tertinggi</span>
+        <span class="ai-chip" onclick="askAI('Berapa total emisi CO₂ tahun ini dan bagaimana trennya?')">🌍 Tren CO₂</span>
+        <span class="ai-chip" onclick="askAI('Budget mana yang hampir atau sudah melebihi anggaran?')">💰 Status budget</span>
+        <span class="ai-chip" onclick="askAI('Apa rekomendasi efisiensi energi untuk bulan depan?')">💡 Rekomendasi</span>
+      </div>
+      <div class="ai-msgs" id="ai-msgs"></div>
+      <div class="ai-foot">
+        <textarea class="ai-input" id="ai-q" placeholder="Tanya tentang data energi Wisma 46..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAI();}"></textarea>
+        <button class="ai-send" id="ai-send-btn" onclick="sendAI()">➤</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+// ─── EMBEDDED FALLBACK DATA (dari Energy_Management_Control.xlsx asli) ─────
+const FALLBACK = {
+  months:['Jan','Feb','Mar','Apr','May','Jun'],
+  el_bud:1201379670, wa_bud:137676258.26,
+  el_use:[1133204893,1022915437,1059367469,1137328657,1093982474,1156127418],
+  wa_use:[131301835,117799835,101911335,99868835,130291335,113650335],
+  kwh:[1009696,911312,943024,1013952,974576,1031808],
+  base_kwh:1023180, faktor:0.85, base_co2:869.703,
+  area:[64977.53,65322.5,65439.58,66425.06,66425.06,66425.06],
+  occ:[0.793,0.7972,0.7986,0.8106,0.8106,0.8106],
+  landlord:[735632,671412,711812,719012,699534,769390],
+  ch_plan:[5.2,5.2,5.2,5.2,5.2,5.2],
+  ch_real:[4.217827,3.672548,3.53,4.44,4.14,3.950587],
+  ot_plan:[7.2,7.2,7.2,7.2,7.2,7.2],
+  ot_real:[7.103502,6.605871,7.35,6.38,6.39,7.63224],
+  lw_plan:[0.09,0.09,0.09,0.09,0.09,0.09],
+  lw_real:[0.076057,0.066363,0.06,0.05,0.07,0],
+};
+
+// ─── EMBEDDED FALLBACK — KUALITAS UDARA (dari sheet Apr/Mei/Jun26 asli) ────
+// avg = rata-rata seluruh lantai bulan itu (baca sensor 0 / offline diabaikan)
+const AQ_FALLBACK = {
+  baseline: { suhu:28, rh:65, hcho:0.1, pm25:20, tvoc:1, co:30, co2:1000, aqi:50 },
+  months: {
+    April: { suhu:24.09, rh:56.37, hcho:0.06, pm25:10.32, tvoc:0.83, co:7.75, co2:993.05, aqi:21.86 },
+    Mei:   { suhu:24.38, rh:56.05, hcho:0.06, pm25:9.97,  tvoc:0.67, co:5.68, co2:958.7,  aqi:18.64 },
+    Juni:  { suhu:24.29, rh:55.4,  hcho:0.05, pm25:15.0,  tvoc:0.57, co:5.85, co2:1000.79,aqi:21.0  },
+  },
+  // rata-rata per lantai — bulan Juni (bulan terakhir) untuk deteksi lantai "hotspot"
+  floors: [
+    ['Outdoor',28.00,60.44,53.00,487.33,30.22],['GF',26.33,55.33,35.25,623.08,22.58],
+    [1,24.71,58.07,28.07,865.36,19.14],[2,24.57,58.21,24.14,925.29,17.36],[3,24.43,60.29,18.36,775.79,13.14],
+    [4,24.79,56.71,18.07,873.93,14.36],[5,24.86,56.14,12.57,824.86,11.5],[6,24.57,56.43,10.5,814.07,10.57],
+    [7,24.43,56.14,9.38,1010.57,16.07],[8,24.29,55.64,14.07,847.71,13.14],[9,24.29,55.29,10.43,921.36,13.79],
+    [11,24.21,56.21,5.75,2380.07,70.71],[12,24.21,55.71,8.5,871.0,19.64],[14,24.07,55.5,3.8,1050.29,19.21],
+    [15,24.07,54.57,3.14,1524.86,34.86],[16,24.14,54.43,3.11,1139.29,22.29],[17,24.07,53.29,9.79,1004.5,17.93],
+    [18,24.0,54.64,6.29,1003.86,16.0],[19,24.07,54.79,6.2,1002.29,16.0],[20,24.07,55.14,2.7,1351.5,27.36],
+    [21,24.36,56.07,4.92,1935.57,47.93],[22,24.29,55.57,2.0,2178.0,56.21],[23,24.43,54.93,null,2221.5,56.79],
+    [24,24.43,55.21,10.5,2016.79,45.5],[25,24.5,55.36,11.29,1253.43,23.57],[26,24.36,55.14,7.17,980.64,14.57],
+    [28,24.36,54.57,13.14,904.86,14.21],[29,24.5,55.36,4.69,969.86,15.93],[30,24.5,55.0,10.15,847.43,12.14],
+    [31,24.43,54.64,12.54,1156.0,23.71],[32,24.43,54.29,11.08,1088.5,23.21],[33,24.36,54.86,10.46,1025.79,18.14],
+    [34,24.29,54.71,12.93,753.71,11.14],[35,24.23,54.46,16.0,691.31,11.62],[36,24.08,55.0,21.54,662.85,15.38],
+    [37,24.0,55.69,21.69,628.38,14.54],[38,23.92,54.69,17.92,612.92,12.77],[39,24.0,54.62,15.83,618.38,10.77],
+    [40,23.92,54.85,8.46,697.46,9.15],[41,23.92,55.38,9.85,858.92,15.15],[42,24.0,54.92,9.2,859.08,13.38],
+    [43,23.86,55.29,13.62,774.64,12.57],[44,23.79,55.36,14.07,676.5,10.43],[45,23.79,55.29,16.64,641.36,11.93],
+    [46,23.79,54.57,19.71,610.64,13.79],[47,23.86,54.79,31.5,578.14,21.36],[48,23.86,53.36,31.79,560.64,21.57],
+    [50,23.08,53.46,36.08,494.15,23.77],
+  ], // [lantai, suhu, rh, pm25, co2, aqi]
+};
+
+// ─── STATE ─────────────────────────────────────────────────────────────────
+let D = JSON.parse(JSON.stringify(FALLBACK));
+let AQ = JSON.parse(JSON.stringify(AQ_FALLBACK));
+let aqMonth = 'Juni'; // bulan yang sedang ditampilkan di halaman Kualitas Udara
+let charts = {};
+let refreshTimer = null;
+let dataSource = 'fallback'; // 'sheets' | 'fallback'
+
+// ─── CONFIG (localStorage, dengan default koneksi spreadsheet Wisma 46) ─────
+const DEFAULT_SID   = '1JU_y9ox6cplmZLMiSFUEFjtPkW-w8D7B'; // Google Sheets asli (dikonfirmasi publik & terbaca) — link terbaru dari Bapak Adi
+const DEFAULT_GID1  = '750612645'; // sheet "Energy Management Monitoring" — berisi 7 tabel (Electric/Water/E+W/IKE&CO2/Chiller&Others/Landlord Water)
+const DEFAULT_GID_AQ_APR = '1336118249'; // sheet "Kualitas udara April26"
+const DEFAULT_GID_AQ_MEI = '1151582534'; // sheet "Kualitas udara Mei26"
+const DEFAULT_GID_AQ_JUN = '513935244';  // sheet "Kualitas udara Juni26"
+const DEFAULT_DRIVE_ID = '';        // jalur cadangan (Drive .xlsx biasa) — dikosongkan karena sudah pakai Sheets asli
+const DEFAULT_SHEET1 = 'Energy Management Monitoring';
+
+function extractDriveId(input) {
+  if (!input) return '';
+  const s = input.trim();
+  const m = s.match(/\/d\/([a-zA-Z0-9_-]{20,})/) || s.match(/[?&]id=([a-zA-Z0-9_-]{20,})/);
+  if (m) return m[1];
+  if (/^[a-zA-Z0-9_-]{20,}$/.test(s)) return s; // already a bare ID
+  return s;
+}
+
+const CFG = {
+  get driveId() { return localStorage.getItem('en_drive') || DEFAULT_DRIVE_ID; },
+  get sheet1()  { return localStorage.getItem('en_sh1')   || DEFAULT_SHEET1; },
+  // Jalur utama: Google Sheets asli via Sheet ID + GID (CORS-safe, resmi didukung Google)
+  get sid()  { return localStorage.getItem('en_sid')  || DEFAULT_SID; },
+  get gid1() { return localStorage.getItem('en_gid1') || DEFAULT_GID1; },
+  get gidAqApr() { return localStorage.getItem('en_gid_aq_apr') || DEFAULT_GID_AQ_APR; },
+  get gidAqMei() { return localStorage.getItem('en_gid_aq_mei') || DEFAULT_GID_AQ_MEI; },
+  get gidAqJun() { return localStorage.getItem('en_gid_aq_jun') || DEFAULT_GID_AQ_JUN; },
+  get ref()  { return parseInt(localStorage.getItem('en_ref') || '5'); },
+  get gkey() { return localStorage.getItem('en_gkey') || ''; },
+};
+
+// ─── HELPERS ───────────────────────────────────────────────────────────────
+const idr = n => new Intl.NumberFormat('id-ID').format(Math.round(n));
+const rpM = n => n ? 'Rp '+(n/1e9).toFixed(2)+'M' : '-';
+const rpF = n => n > 0 ? 'Rp '+idr(n) : '-';
+const n2  = n => typeof n==='number' ? n.toFixed(2) : '-';
+const pct = n => typeof n==='number' ? (n*100).toFixed(1)+'%' : '-';
+
+function badge(usePct) {
+  if (!usePct || usePct <= 0) return '-';
+  if (usePct <= 90) return '<span class="badge be">✅ Excellent</span>';
+  if (usePct <= 100) return '<span class="badge ba">✅ Achieved</span>';
+  return '<span class="badge br">⚠️ Review</span>';
+}
+function kc(klass,lbl,val,sub){
+  const colors={elec:'var(--elec)',water:'var(--water)',co2:'var(--co2)',pri:'var(--pri)',amb:'var(--amb)',red:'var(--red)',blu:'var(--blu)'};
+  return`<div class="kc ${klass}"><div class="kc-l">${lbl}</div><div class="kc-v" style="color:${colors[klass]||'var(--t)'};">${val}</div><div class="kc-s">${sub}</div></div>`;
+}
+function mk(id, cfg) {
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart(document.getElementById(id), cfg);
+}
+
+// ─── CSV PARSER ────────────────────────────────────────────────────────────
+function parseCSV(text) {
+  const rows = [];
+  const lines = text.trim().split('\n');
+  for (const line of lines) {
+    const cells = []; let cur = ''; let inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      if (line[i] === '"') { inQ = !inQ; }
+      else if (line[i] === ',' && !inQ) { cells.push(cur.trim()); cur = ''; }
+      else { cur += line[i]; }
+    }
+    cells.push(cur.trim());
+    rows.push(cells);
+  }
+  return rows;
+}
+
+function cleanNum(v) {
+  if (v === null || v === undefined || v === '') return 0;
+  const s = String(v).replace(/[^0-9.\-]/g, '');
+  return parseFloat(s) || 0;
+}
+
+// ─── FETCH XLSX FILE FROM GOOGLE DRIVE (file biasa, bukan Google Sheets asli) ─
+async function fetchDriveWorkbook(fileId, timeout=15000) {
+  if (!fileId) return null;
+  const urls = [
+    `https://drive.google.com/uc?export=download&id=${fileId}`,
+    `https://drive.google.com/uc?id=${fileId}&export=download`,
+  ];
+  for (const url of urls) {
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), timeout);
+      let res = await fetch(url, { signal: ctrl.signal });
+      clearTimeout(timer);
+      if (!res.ok) continue;
+
+      let buf = await res.arrayBuffer();
+      // Deteksi halaman interstitial "confirm virus scan" (HTML, bukan file xlsx/zip asli)
+      const head = new TextDecoder('utf-8').decode(buf.slice(0, 4));
+      if (!head.startsWith('PK')) {
+        const html = new TextDecoder('utf-8').decode(buf);
+        const cm = html.match(/confirm=([0-9A-Za-z_-]+)/);
+        const uu = html.match(/uuid=([0-9A-Za-z_-]+)/);
+        if (cm) {
+          const confirmUrl = `https://drive.google.com/uc?export=download&confirm=${cm[1]}&id=${fileId}${uu?('&uuid='+uu[1]):''}`;
+          const ctrl2 = new AbortController();
+          const timer2 = setTimeout(() => ctrl2.abort(), timeout);
+          res = await fetch(confirmUrl, { signal: ctrl2.signal });
+          clearTimeout(timer2);
+          if (!res.ok) continue;
+          buf = await res.arrayBuffer();
+        } else {
+          continue; // bukan file valid, coba url berikutnya
+        }
+      }
+      const wb = XLSX.read(buf, { type: 'array' });
+      return wb;
+    } catch (e) { /* coba url berikutnya */ }
+  }
+  return null;
+}
+
+function findSheetName(wb, wanted, fallbackIncludes) {
+  if (wb.SheetNames.includes(wanted)) return wanted;
+  const norm = s => s.toLowerCase().replace(/[^a-z0-9]/g,'');
+  const w = norm(wanted);
+  let hit = wb.SheetNames.find(n => norm(n) === w);
+  if (hit) return hit;
+  hit = wb.SheetNames.find(n => fallbackIncludes.some(k => norm(n).includes(k)));
+  return hit || null;
+}
+
+function sheetCsv(wb, name) {
+  if (!name) return null;
+  const ws = wb.Sheets[name];
+  if (!ws) return null;
+  return XLSX.utils.sheet_to_csv(ws, { blankrows: false });
+}
+
+// ─── FETCH FROM GOOGLE SHEETS (legacy — dipakai jika file sudah native Google Sheets) ──
+async function fetchSheet(gid, timeout=8000) {
+  const sid = CFG.sid;
+  if (!sid || !gid) return null;
+  const urls = [
+    `https://docs.google.com/spreadsheets/d/${sid}/export?format=csv&gid=${gid}`,
+    `https://docs.google.com/spreadsheets/d/${sid}/pub?gid=${gid}&single=true&output=csv`,
+  ];
+  for (const url of urls) {
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), timeout);
+      const res = await fetch(url, { signal: ctrl.signal });
+      clearTimeout(timer);
+      if (res.ok) return await res.text();
+    } catch(e) { /* try next */ }
+  }
+  return null;
+}
+
+// ─── PARSE "Energy Management Monitoring" SHEET ────────────────────────────
+// Sheet ini berisi BEBERAPA tabel bertumpuk (Electric, Water, IKE&CO2,
+// Chiller/Others, Landlord Water) — bukan 1 tabel rapi. Parser ini mencari
+// tiap tabel berdasarkan teks penanda (nama item), bukan nomor baris tetap,
+// supaya tetap jalan walau baris sedikit bergeser di spreadsheet asli.
+function findRow(rows, colIdx, matchFn, from) {
+  from = from || 0;
+  for (let i = from; i < rows.length; i++) {
+    const v = (rows[i][colIdx] || '').toString().trim();
+    if (matchFn(v)) return i;
+  }
+  return -1;
+}
+function findRowAny(rows, substrLower, from) {
+  from = from || 0;
+  for (let i = from; i < rows.length; i++) {
+    if (rows[i].some(c => (c || '').toString().toLowerCase().includes(substrLower))) return i;
+  }
+  return -1;
+}
+// Kolom C=idx2(No), D=idx3(Item), E=idx4(label Budget/Usage/Planing/dst), F..K=idx5..10 (Jan..Jun)
+function monthVals(row) { return [5,6,7,8,9,10].map(i => cleanNum(row[i])); }
+
+function parseEnergySheet(csv) {
+  const rows = parseCSV(csv);
+  const out = {};
+  const MONTH_NAMES = ['jan','feb','mar','apr','may','mei','jun','jun26','jul','aug','agu','sep','sept','okt','oct','nov','des','dec'];
+
+  // ── Electric ──
+  const iE = findRow(rows, 3, v => v.toLowerCase() === 'electric');
+  if (iE >= 0) { out.el_bud = monthVals(rows[iE]).find(v => v > 0) || 0; out.el_use = monthVals(rows[iE + 1]); }
+
+  // ── Water ──
+  const iW = findRow(rows, 3, v => v.toLowerCase() === 'water');
+  if (iW >= 0) { out.wa_bud = monthVals(rows[iW]).find(v => v > 0) || 0; out.wa_use = monthVals(rows[iW + 1]); }
+
+  // ── IKE & CO2 monthly table (Bulan/2026 ...) ──
+  let iIke = findRowAny(rows, 'ike & co');
+  if (iIke < 0) iIke = findRowAny(rows, 'energy monitoring —');
+  const months=[], kwh=[], area=[], occ=[], landlord=[];
+  let base_kwh=0, faktor=0.85, base_co2=0;
+  if (iIke >= 0) {
+    for (let i = iIke; i < Math.min(iIke + 40, rows.length); i++) {
+      const r = rows[i];
+      const m = (r[2] || '').toString().trim();
+      if (!MONTH_NAMES.includes(m.toLowerCase())) continue;
+      const kwhV = cleanNum(r[3]);
+      if (!(kwhV > 0)) continue; // bulan belum terisi, berhenti hitung bulan ini
+      months.push(m);
+      kwh.push(kwhV);
+      const bKwh = cleanNum(r[4]); if (bKwh > 0 && base_kwh === 0) base_kwh = bKwh;
+      area.push(cleanNum(r[5]));
+      occ.push(cleanNum(r[6]));
+      landlord.push(cleanNum(r[9]));
+      const fk = cleanNum(r[13]); if (fk > 0) faktor = fk;
+      const bco2 = cleanNum(r[16]); if (bco2 > 0 && base_co2 === 0) base_co2 = bco2;
+    }
+  }
+  out.months = months.length ? months : null;
+  out.kwh = kwh.length ? kwh : null;
+  out.area = area.length ? area : null;
+  out.occ = occ.length ? occ : null;
+  out.landlord = landlord.length ? landlord : null;
+  out.base_kwh = base_kwh || null;
+  out.faktor = faktor;
+  out.base_co2 = base_co2 || null;
+
+  // ── Chiller / Others (OPEX Eng Utilities - Listrik) ──
+  const iCh = findRow(rows, 3, v => v.toLowerCase() === 'chiller');
+  if (iCh >= 0) { out.ch_plan = monthVals(rows[iCh]); out.ch_real = monthVals(rows[iCh + 1]); }
+  const iOt = findRow(rows, 3, v => v.toLowerCase() === 'others');
+  if (iOt >= 0) { out.ot_plan = monthVals(rows[iOt]); out.ot_real = monthVals(rows[iOt + 1]); }
+
+  // ── Landlord Water (OPEX Eng Utilities - Air) ──
+  const iLw = findRow(rows, 3, v => v.toLowerCase().includes('landlord water'));
+  if (iLw >= 0) { out.lw_plan = monthVals(rows[iLw]); out.lw_real = monthVals(rows[iLw + 1]); }
+
+  // Kalau tabel tertentu tidak ketemu di sheet, pakai fallback per bagian (bukan seluruh dataset)
+  if (!out.months) return null; // tabel inti (IKE&CO2) wajib ada — kalau tidak, seluruh parse dianggap gagal
+  ['el_bud','wa_bud','base_kwh','base_co2'].forEach(k => { if (!out[k]) out[k] = FALLBACK[k]; });
+  ['el_use','wa_use','area','occ','landlord','ch_plan','ch_real','ot_plan','ot_real','lw_plan','lw_real'].forEach(k => {
+    if (!out[k] || !out[k].length) out[k] = FALLBACK[k];
+  });
+  return out;
+}
+
+// ─── PARSE "Kualitas udara <Bulan>" SHEET ───────────────────────────────────
+// Format: header di baris ke-4 (kolom D=Tanggal, E=Lantai, F..M=parameter,
+// N..U=baseline), lalu ratusan baris data harian per lantai.
+function parseAirSheet(csv) {
+  const rows = parseCSV(csv);
+  const hdrIdx = findRow(rows, 3, v => v.trim().toLowerCase() === 'tanggal');
+  if (hdrIdx < 0) return null;
+  const PARAM_COLS = { suhu:5, rh:6, hcho:7, pm25:8, tvoc:9, co:10, co2:11, aqi:12 };
+  const BASE_COLS  = { suhu:13, rh:14, hcho:15, pm25:16, tvoc:17, co:18, co2:19, aqi:20 };
+
+  const sums = {suhu:0,rh:0,hcho:0,pm25:0,tvoc:0,co:0,co2:0,aqi:0};
+  const counts = {suhu:0,rh:0,hcho:0,pm25:0,tvoc:0,co:0,co2:0,aqi:0};
+  const baseline = {};
+  const floorAgg = {}; // floor -> {sums, counts}
+
+  for (let i = hdrIdx + 1; i < rows.length; i++) {
+    const r = rows[i];
+    const tgl = (r[3] || '').toString().trim();
+    if (!tgl) continue;
+    const floor = (r[4] || '').toString().trim();
+    if (!floorAgg[floor]) floorAgg[floor] = {suhu:0,rh:0,pm25:0,co2:0,aqi:0,n:{suhu:0,rh:0,pm25:0,co2:0,aqi:0}};
+    for (const k in PARAM_COLS) {
+      const v = cleanNum(r[PARAM_COLS[k]]);
+      if (v > 0) { sums[k]+=v; counts[k]++; }
+      if ((k==='suhu'||k==='rh'||k==='pm25'||k==='co2'||k==='aqi') && v>0) {
+        floorAgg[floor][k]+=v; floorAgg[floor].n[k]++;
+      }
+    }
+    if (Object.keys(baseline).length === 0) {
+      for (const k in BASE_COLS) { const bv = cleanNum(r[BASE_COLS[k]]); if (bv>0) baseline[k]=bv; }
+    }
+  }
+  const avg = {};
+  for (const k in sums) avg[k] = counts[k] ? +(sums[k]/counts[k]).toFixed(2) : 0;
+  const floors = Object.keys(floorAgg).map(f => {
+    const a = floorAgg[f];
+    return [f, a.n.suhu?+(a.suhu/a.n.suhu).toFixed(2):0, a.n.rh?+(a.rh/a.n.rh).toFixed(2):0,
+      a.n.pm25?+(a.pm25/a.n.pm25).toFixed(2):null, a.n.co2?+(a.co2/a.n.co2).toFixed(2):0,
+      a.n.aqi?+(a.aqi/a.n.aqi).toFixed(2):0];
+  });
+  if (!floors.length) return null;
+  return { avg, baseline: Object.keys(baseline).length?baseline:AQ_FALLBACK.baseline, floors };
+}
+
+// ─── LOAD DATA ─────────────────────────────────────────────────────────────
+async function loadData(manual=false) {
+  setSyb('loading');
+  document.getElementById('lo-txt').textContent = 'Menghubungkan ke Google Sheets...';
+  if (manual) document.getElementById('lo').classList.remove('hd');
+
+  // Safety hide loading after 12s no matter what
+  const safety = setTimeout(() => { document.getElementById('lo').classList.add('hd'); }, 12000);
+  const msgs = [];
+
+  try {
+    let csv1 = null, via = '';
+
+    // Jalur 1 (utama — didukung resmi & CORS-safe): Google Sheets ASLI via Sheet ID + GID
+    if (CFG.sid && CFG.gid1) {
+      csv1 = await fetchSheet(CFG.gid1);
+      if (csv1) via = 'sheets';
+    }
+
+    // Jalur 2 (best-effort — file Excel biasa di Drive; browser SERINGKALI memblokir
+    // request ini karena Google Drive tidak mengirim header CORS untuk endpoint
+    // download-nya, jadi jalur ini bisa gagal walau file sudah publik)
+    if (!csv1 && CFG.driveId) {
+      const wb = await fetchDriveWorkbook(CFG.driveId);
+      if (wb) {
+        const n1 = findSheetName(wb, CFG.sheet1, ['monitoring','data']);
+        csv1 = sheetCsv(wb, n1);
+        if (csv1) via = 'drive';
+      }
+    }
+
+    if (!csv1) {
+      if (CFG.driveId && !(CFG.sid && CFG.gid1)) {
+        throw new Error('Gagal ambil file dari Google Drive — kemungkinan besar diblokir CORS oleh Google (bukan masalah izin share). Solusi: convert file ke Google Sheets asli, lalu isi Sheet ID + GID di Pengaturan.');
+      }
+      throw new Error('Belum ada sumber data yang berhasil diambil');
+    }
+
+    // Deteksi: yang didapat malah halaman HTML (login/sign-in), bukan data CSV asli.
+    const looksHtml = /^\s*<(!doctype|html)/i.test(csv1);
+    if (looksHtml) throw new Error('Sheet belum bisa diakses publik (dapat halaman login, bukan data) — cek lagi Share → Anyone with the link → Viewer/Editor pada spreadsheet, atau GID salah (tab tidak ada / private)');
+
+    const parsed = parseEnergySheet(csv1);
+    if (!parsed || !parsed.months || !parsed.months.length) throw new Error('Sheet terbaca tapi tabel "IKE & CO₂" tidak ditemukan (cek apakah GID mengarah ke tab "Energy Management Monitoring")');
+
+    D = { ...FALLBACK, ...parsed };
+    dataSource = 'sheets';
+    via = via || 'sheets';
+
+    // ── Kualitas Udara (3 sheet terpisah: April/Mei/Juni) ──
+    const aqGids = { April: CFG.gidAqApr, Mei: CFG.gidAqMei, Juni: CFG.gidAqJun };
+    let aqLoaded = 0;
+    for (const bln in aqGids) {
+      const gid = aqGids[bln];
+      if (!gid) continue;
+      try {
+        const csvAq = await fetchSheet(gid);
+        if (csvAq && !/^\s*<(!doctype|html)/i.test(csvAq)) {
+          const parsedAq = parseAirSheet(csvAq);
+          if (parsedAq) { AQ.months[bln] = parsedAq.avg; AQ.baseline = parsedAq.baseline; if (bln==='Juni') AQ.floors = parsedAq.floors; aqLoaded++; }
+        }
+      } catch(e) { /* satu bulan gagal, lanjut yang lain */ }
+    }
+    if (!aqLoaded) msgs.push('Kualitas Udara: GID belum diisi / gagal diambil, memakai data cadangan');
+
+    setSyb('live');
+    const now = new Date().toLocaleTimeString('id-ID');
+    document.getElementById('last-upd').textContent = `Data dari ${via==='drive'?'Google Drive (xlsx)':'Google Sheets'} · Update: ${now}` + (msgs.length?` · ⚠️ ${msgs.join('; ')}`:'');
+    document.getElementById('set-msg').textContent = '✅ Terhubung, data berhasil dimuat' + (msgs.length?` (${msgs.join('; ')})`:'');
+    document.getElementById('set-msg').className = 'set-msg ok';
+
+  } catch(e) {
+    dataSource = 'fallback';
+    D = JSON.parse(JSON.stringify(FALLBACK));
+    AQ = JSON.parse(JSON.stringify(AQ_FALLBACK));
+    setSyb('local');
+    const msg = (CFG.driveId||CFG.sid) ? `⚠️ Gagal ambil data — ${e.message}` : '⚠️ Belum ada koneksi';
+    document.getElementById('last-upd').textContent = `Data cadangan (embedded) · ${msg}`;
+    if (CFG.driveId||CFG.sid) {
+      document.getElementById('set-msg').textContent = `❌ ${e.message}`;
+      document.getElementById('set-msg').className = 'set-msg err';
+    }
+  }
+
+  clearTimeout(safety);
+  renderCurrent();
+  buildNotifications();
+  document.getElementById('lo').classList.add('hd');
+  scheduleRefresh();
+}
+
+function setSyb(state) {
+  const el = document.getElementById('syb');
+  const dot = document.getElementById('sy-dot');
+  const txt = document.getElementById('sy-txt');
+  el.className = `syb ${state==='live'?'live':state==='loading'?'local':'local'}`;
+  dot.className = `dot ${state==='live'?'g':state==='loading'?'y':'y'}`;
+  txt.textContent = state==='live' ? 'Live · Sheets' : state==='loading' ? 'Menghubungkan...' : 'Data cadangan';
+}
+
+function scheduleRefresh() {
+  if (refreshTimer) clearInterval(refreshTimer);
+  const mins = CFG.ref;
+  if (mins > 0) refreshTimer = setInterval(() => loadData(), mins * 60 * 1000);
+}
+
+// ─── RENDER LOGIC ──────────────────────────────────────────────────────────
+const TT = {db:'Dashboard',el:'⚡ Electric',wa:'💧 Water',ew:'🔗 Electric + Water',
+            ik:'📐 IKE Monitor',co:'🌍 CO₂ Emissions',aq:'🌬️ Kualitas Udara',ch:'❄️ Chiller & Listrik',aw:'🚿 Air / Water',ai:'🤖 AI Assistant'};
+
+function go(id) {
+  document.querySelectorAll('.vw').forEach(v => v.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b => b.classList.remove('on'));
+  document.getElementById('vw-'+id).classList.add('on');
+  document.querySelectorAll('.nb').forEach(b => { if(b.textContent.trim().startsWith((TT[id]||'').substring(0,4))) b.classList.add('on'); });
+  document.getElementById('pt').textContent = TT[id] || id;
+  render(id);
+}
+
+function renderCurrent() {
+  const cur = document.querySelector('.vw.on')?.id?.replace('vw-','') || 'db';
+  render(cur);
+  buildNotifications();
+}
+
+function render(id) {
+  if (id==='db') rDb();
+  else if (id==='el') rOpex('el', D.el_bud, D.el_use, '⚡', 'elec');
+  else if (id==='wa') rOpex('wa', D.wa_bud, D.wa_use, '💧', 'water');
+  else if (id==='ew') rEw();
+  else if (id==='ik') rIk();
+  else if (id==='co') rCo();
+  else if (id==='aq') rAq();
+  else if (id==='ch') rCh();
+  else if (id==='aw') rAw();
+  else if (id==='ai') initAI();
+}
+
+// ─── OPEX BUILDER ──────────────────────────────────────────────────────────
+function rOpex(pfx, bud, usage, icon, klass) {
+  const M = D.months;
+  const active = M.filter((_,i) => usage[i] > 0);
+  const useV = active.map((_,i) => usage[i]);
+  const budV = active.map(() => bud);
+  const pct_ = active.map((_,i) => useV[i] > 0 ? useV[i]/bud*100 : 0);
+  const sav_ = pct_.map(p => p > 0 ? 100-p : 0);
+  const tBud = bud * active.length;
+  const tUse = useV.reduce((a,b)=>a+b,0);
+  const aP = tBud > 0 ? tUse/tBud*100 : 0;
+
+  document.getElementById(`${pfx}-kpi`).innerHTML =
+    kc(klass,'Total Anggaran',rpM(tBud),active.length+' bulan') +
+    kc(aP<=100?'pri':'red','Total Realisasi',rpM(tUse),aP.toFixed(1)+'% terpakai') +
+    kc('pri','Total Saving',rpM(tBud-tUse),'Efisiensi '+(100-aP).toFixed(1)+'%') +
+    kc(aP<=90?'pri':aP<=100?'amb':'red','Avg KPI',
+       aP<=90?'✅ Excellent':aP<=100?'✅ Achieved':'⚠️ Review',
+       'Rata-rata '+aP.toFixed(1)+'%');
+
+  mk(`${pfx}-c1`,{type:'bar',data:{labels:active,datasets:[
+    {label:'Anggaran',data:budV.map(v=>v/1e9),backgroundColor:'rgba(147,197,253,.7)',borderRadius:3},
+    {label:'Realisasi',data:useV.map(v=>v/1e9),backgroundColor:'rgba(52,211,153,.8)',borderRadius:3},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},boxWidth:10}}},
+    scales:{y:{ticks:{font:{size:9},callback:v=>v.toFixed(2)+'M'}},x:{ticks:{font:{size:9}}}}}});
+
+  mk(`${pfx}-c2`,{type:'line',data:{labels:active,datasets:[
+    {label:'Usage %',data:pct_,borderColor:'#f59e0b',fill:false,tension:.4,pointRadius:4,borderWidth:2},
+    {label:'Saving %',data:sav_,borderColor:'#1D9E75',fill:false,tension:.4,pointRadius:4,borderWidth:2},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},boxWidth:10}}},
+    scales:{y:{ticks:{font:{size:9},callback:v=>v.toFixed(1)+'%'},min:0,max:120},x:{ticks:{font:{size:9}}}}}});
+
+  document.getElementById(`${pfx}-tb`).innerHTML = active.map((_,i) => `<tr>
+    <td style="font-weight:700;">${active[i]}</td>
+    <td style="text-align:right;">${rpF(bud)}</td>
+    <td style="text-align:right;">${rpF(useV[i])}</td>
+    <td style="text-align:center;font-weight:700;color:${pct_[i]>100?'var(--red)':pct_[i]>90?'var(--amb)':'var(--pri)'};">${useV[i]>0?pct_[i].toFixed(1)+'%':'-'}</td>
+    <td style="text-align:center;font-weight:700;color:var(--pri);">${sav_[i]>0?sav_[i].toFixed(1)+'%':'-'}</td>
+    <td style="text-align:center;">${badge(pct_[i])}</td>
+  </tr>`).join('');
+}
+
+// ─── ELECTRIC + WATER ──────────────────────────────────────────────────────
+function rEw() {
+  const M = D.months;
+  const active = M.filter((_,i) => D.el_use[i]>0 || D.wa_use[i]>0);
+  const combUse = active.map((_,i) => D.el_use[i]+D.wa_use[i]);
+  const combBud = D.el_bud + D.wa_bud;
+  const pct_ = combUse.map(v => v>0 ? v/combBud*100 : 0);
+  const tBud = combBud * active.length;
+  const tUse = combUse.reduce((a,b)=>a+b,0);
+  const aP = tBud > 0 ? tUse/tBud*100 : 0;
+
+  document.getElementById('ew-kpi').innerHTML =
+    kc('elec','Total Anggaran',rpM(tBud),active.length+' bulan') +
+    kc('pri','Total Realisasi',rpM(tUse),aP.toFixed(1)+'% terpakai') +
+    kc('pri','Total Saving',rpM(tBud-tUse),'Efisiensi '+(100-aP).toFixed(1)+'%') +
+    kc(aP<=90?'pri':aP<=100?'amb':'red','KPI',aP<=90?'✅ Excellent':aP<=100?'✅ Achieved':'⚠️ Review','Avg '+aP.toFixed(1)+'%');
+
+  mk('ew-c1',{type:'bar',data:{labels:active,datasets:[
+    {label:'Anggaran',data:active.map(()=>combBud/1e9),backgroundColor:'rgba(147,197,253,.7)',borderRadius:3},
+    {label:'Realisasi',data:combUse.map(v=>v/1e9),backgroundColor:'rgba(52,211,153,.8)',borderRadius:3},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},boxWidth:10}}},
+    scales:{y:{ticks:{font:{size:9},callback:v=>v.toFixed(2)+'M'}},x:{ticks:{font:{size:9}}}}}});
+
+  mk('ew-c2',{type:'bar',data:{labels:active,datasets:[
+    {label:'Electric',data:active.map((_,i)=>D.el_use[i]/1e9),backgroundColor:'var(--elec)',borderRadius:3},
+    {label:'Water',data:active.map((_,i)=>D.wa_use[i]/1e9),backgroundColor:'var(--water)',borderRadius:3},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},boxWidth:10}}},
+    scales:{x:{stacked:true},y:{stacked:true,ticks:{font:{size:9},callback:v=>v.toFixed(2)+'M'}}}}});
+
+  document.getElementById('ew-tb').innerHTML = active.map((_,i) => `<tr>
+    <td style="font-weight:700;">${active[i]}</td>
+    <td style="text-align:right;">${rpF(combBud)}</td>
+    <td style="text-align:right;font-weight:700;">${rpF(combUse[i])}</td>
+    <td style="text-align:right;">${rpF(D.el_use[i])}</td>
+    <td style="text-align:right;">${rpF(D.wa_use[i])}</td>
+    <td style="text-align:center;font-weight:700;color:${pct_[i]>100?'var(--red)':pct_[i]>90?'var(--amb)':'var(--pri)'};">${combUse[i]>0?pct_[i].toFixed(1)+'%':'-'}</td>
+    <td style="text-align:center;">${badge(pct_[i])}</td>
+  </tr>`).join('');
+}
+
+// ─── IKE ───────────────────────────────────────────────────────────────────
+// ─── STANDAR BASELINE IKE — SNI 03-6196-2000 / Permen ESDM No.13/2012 ──────
+// Kriteria untuk ruangan/gedung ber-AC (kWh/m²/bulan)
+const IKE_BANDS = [
+  { max: 7.92,  label: 'Sangat Efisien', color: '#0d9488' },
+  { max: 12.08, label: 'Efisien',        color: '#1D9E75' },
+  { max: 14.58, label: 'Cukup Efisien',  color: '#84CC16' },
+  { max: 19.17, label: 'Agak Boros',     color: '#d97706' },
+  { max: 23.75, label: 'Boros',          color: '#dc2626' },
+  { max: Infinity, label: 'Sangat Boros', color: '#991b1b' },
+];
+function ikeClass(v) { return IKE_BANDS.find(b => v <= b.max) || IKE_BANDS[IKE_BANDS.length-1]; }
+// Baseline operasional gedung perkantoran (sesuai data di spreadsheet Bapak Adi):
+// ASEAN-USAID Building Energy Conservation Project = 240 kWh/m²/TAHUN untuk gedung perkantoran
+// ≈ 20 kWh/m²/BULAN — inilah baseline/target yang dipakai sebagai garis acuan utama.
+const IKE_TARGET = 20;
+
+function rIk() {
+  const M = D.months;
+  const active = M.filter((_,i) => D.kwh[i]>0);
+  const ikeV = active.map((_,i) => D.area[i]>0 ? D.kwh[i]/D.area[i] : 0);
+  const avgIKE = ikeV.reduce((a,b)=>a+b,0)/active.length;
+  const totKWH = active.map((_,i)=>D.kwh[i]).reduce((a,b)=>a+b,0);
+
+  document.getElementById('ik-kpi').innerHTML =
+    kc('elec','Total kWh PLN YTD',(totKWH/1e9).toFixed(2)+'M kWh',active.length+' bulan') +
+    kc(avgIKE<=IKE_TARGET?'pri':'red','Avg IKE',avgIKE.toFixed(2)+' kWh/m²','vs Baseline Gedung Perkantoran 20 → '+(avgIKE<=IKE_TARGET?'✅ Efisien':'⚠️ '+((avgIKE-IKE_TARGET)/IKE_TARGET*100).toFixed(1)+'% di atas baseline')) +
+    kc('amb','Avg Occupancy',(active.map((_,i)=>D.occ[i]).reduce((a,b)=>a+b,0)/active.length*100).toFixed(1)+'%','Lantai terisi') +
+    kc('co2','vs Baseline',((D.base_kwh-totKWH/active.length)/D.base_kwh*100).toFixed(1)+'%','Saving kWh vs 2025');
+
+  mk('ik-c1',{type:'bar',data:{labels:active,datasets:[
+    {label:'kWh PLN',data:active.map((_,i)=>D.kwh[i]/1e6),backgroundColor:'rgba(251,191,36,.8)',borderRadius:3},
+    {label:'Baseline 2025',data:active.map(()=>D.base_kwh/1e6),type:'line',borderColor:'#dc2626',borderWidth:2,pointRadius:0,fill:false},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},boxWidth:10}}},
+    scales:{y:{ticks:{font:{size:9},callback:v=>v.toFixed(1)+'M'}},x:{ticks:{font:{size:9}}}}}});
+
+  mk('ik-c2',{type:'line',data:{labels:active,datasets:[
+    {label:'IKE kWh/m²',data:ikeV,borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.1)',fill:true,tension:.4,pointRadius:5,borderWidth:2},
+    {label:'Baseline Gedung Perkantoran (20)',data:active.map(()=>IKE_TARGET),borderColor:'#dc2626',borderDash:[6,3],borderWidth:1.5,pointRadius:0,fill:false},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},boxWidth:10}}},
+    scales:{y:{ticks:{font:{size:9}},beginAtZero:true,suggestedMax:Math.max(IKE_TARGET,...ikeV)*1.15},x:{ticks:{font:{size:9}}}}}});
+
+  document.getElementById('ik-tb').innerHTML = active.map((_,i) => {
+    const occ = (D.occ[i]||0)*100;
+    const ten = D.kwh[i]-D.landlord[i];
+    const under = ikeV[i] <= IKE_TARGET;
+    const col = under ? 'var(--pri)' : 'var(--red)';
+    return `<tr>
+      <td style="font-weight:700;">${active[i]}</td>
+      <td style="text-align:right;">${idr(D.kwh[i])}</td>
+      <td style="text-align:right;color:var(--t2);">${idr(D.base_kwh)}</td>
+      <td style="text-align:right;">${idr(D.area[i])}</td>
+      <td style="text-align:center;">${occ.toFixed(1)}%</td>
+      <td style="text-align:center;font-weight:700;color:${col};">${ikeV[i].toFixed(2)}</td>
+      <td style="text-align:right;">${idr(D.landlord[i])}</td>
+      <td style="text-align:right;">${idr(ten)}</td>
+      <td style="text-align:center;">${under?'<span class="badge be">✅ Di Bawah Baseline</span>':'<span class="badge br">⚠️ Di Atas Baseline</span>'}</td>
+    </tr>`;}).join('');
+}
+
+// ─── CO₂ ───────────────────────────────────────────────────────────────────
+function rCo() {
+  const M = D.months;
+  const active = M.filter((_,i) => D.kwh[i]>0);
+  const co2Ton = active.map((_,i) => D.kwh[i]*D.faktor/1000);
+  const savPct = co2Ton.map(v => D.base_co2>0 ? (D.base_co2-v)/D.base_co2*100 : 0);
+  const totCO2 = co2Ton.reduce((a,b)=>a+b,0);
+
+  document.getElementById('co-kpi').innerHTML =
+    kc('co2','Total CO₂ YTD',totCO2.toFixed(1)+' Ton',active.length+' bulan') +
+    kc('amb','Avg CO₂/Bln',(totCO2/active.length).toFixed(1)+' Ton','vs Baseline '+D.base_co2.toFixed(1)+' Ton') +
+    kc('pri','Avg Saving CO₂',(savPct.reduce((a,b)=>a+b,0)/active.length).toFixed(2)+'%','vs Baseline 2025') +
+    kc('blu','Faktor Emisi PLN',D.faktor+' kg/kWh','PLN Emission Factor 2023');
+
+  mk('co-c1',{type:'bar',data:{labels:active,datasets:[
+    {label:'Emisi CO₂ (Ton)',data:co2Ton,backgroundColor:'rgba(46,125,50,.7)',borderRadius:3},
+    {label:'Baseline 2025',data:active.map(()=>D.base_co2),type:'line',borderColor:'#dc2626',borderWidth:2,pointRadius:0,fill:false},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},boxWidth:10}}},
+    scales:{y:{ticks:{font:{size:9},callback:v=>v.toFixed(0)+' T'},min:700},x:{ticks:{font:{size:9}}}}}});
+
+  mk('co-c2',{type:'line',data:{labels:active,datasets:[
+    {label:'Saving CO₂ %',data:savPct,borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,.1)',fill:true,tension:.4,pointRadius:5,borderWidth:2},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},boxWidth:10}}},
+    scales:{y:{ticks:{font:{size:9},callback:v=>v.toFixed(1)+'%'}},x:{ticks:{font:{size:9}}}}}});
+
+  document.getElementById('co-tb').innerHTML = active.map((_,i) => `<tr>
+    <td style="font-weight:700;">${active[i]}</td>
+    <td style="text-align:right;">${idr(D.kwh[i])}</td>
+    <td style="text-align:center;">${D.faktor}</td>
+    <td style="text-align:right;">${idr(Math.round(D.kwh[i]*D.faktor))}</td>
+    <td style="text-align:right;font-weight:700;color:var(--co2);">${co2Ton[i].toFixed(1)}</td>
+    <td style="text-align:right;color:var(--t2);">${D.base_co2.toFixed(1)}</td>
+    <td style="text-align:center;font-weight:700;color:${savPct[i]>0?'var(--pri)':'var(--red)'};">${savPct[i].toFixed(2)}%</td>
+  </tr>`).join('');
+}
+
+// ─── KUALITAS UDARA ─────────────────────────────────────────────────────────
+const AQ_ORDER = ['April','Mei','Juni'];
+const AQ_LABEL = {suhu:'Suhu',rh:'RH',hcho:'HCHO',pm25:'PM2.5',tvoc:'TVOC',co:'CO',co2:'CO₂',aqi:'AQI'};
+function aqStatus(m) {
+  // status per bulan: berapa dari 8 parameter yang masih di bawah baseline
+  const b = AQ.baseline; let ok=0, tot=0;
+  for (const k in AQ_LABEL) { if (b[k]==null) continue; tot++; if (m[k] <= b[k]) ok++; }
+  return {ok, tot};
+}
+function rAq() {
+  const months = AQ_ORDER.filter(m => AQ.months[m]);
+  if (!months.length) {
+    document.getElementById('aq-kpi').innerHTML = kc('red','Kualitas Udara','Data belum ada','Isi GID sheet Kualitas Udara di ⚙️ Pengaturan');
+    ['aq-tb','aq-floor-tb'].forEach(id => document.getElementById(id).innerHTML = '');
+    return;
+  }
+  const b = AQ.baseline;
+  const aqiV = months.map(m => AQ.months[m].aqi);
+  const co2V = months.map(m => AQ.months[m].co2);
+  const avgAqi = aqiV.reduce((a,c)=>a+c,0)/aqiV.length;
+  const avgCo2 = co2V.reduce((a,c)=>a+c,0)/co2V.length;
+  const avgPm25 = months.map(m=>AQ.months[m].pm25).reduce((a,c)=>a+c,0)/months.length;
+  const avgSuhu = months.map(m=>AQ.months[m].suhu).reduce((a,c)=>a+c,0)/months.length;
+
+  document.getElementById('aq-kpi').innerHTML =
+    kc(avgAqi<=b.aqi?'pri':'red','Avg AQI',avgAqi.toFixed(1),'Baseline ≤'+b.aqi+' → '+(avgAqi<=b.aqi?'✅ Baik':'⚠️ Perlu perhatian')) +
+    kc(avgCo2<=b.co2?'pri':'amb','Avg CO₂',avgCo2.toFixed(0)+' ppm','Baseline ≤'+b.co2+' ppm') +
+    kc(avgPm25<=b.pm25?'pri':'amb','Avg PM2.5',avgPm25.toFixed(1)+' µg/m³','Baseline ≤'+b.pm25+' µg/m³') +
+    kc('blu','Avg Suhu',avgSuhu.toFixed(1)+'°C','Baseline ≤'+b.suhu+'°C');
+
+  mk('aq-c1',{type:'bar',data:{labels:months,datasets:[
+    {label:'AQI',data:aqiV,backgroundColor:'rgba(29,158,117,.75)',borderRadius:3},
+    {label:'Baseline',data:months.map(()=>b.aqi),type:'line',borderColor:'#dc2626',borderDash:[6,3],borderWidth:2,pointRadius:0,fill:false},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},boxWidth:10}}},
+    scales:{y:{ticks:{font:{size:9}},beginAtZero:true},x:{ticks:{font:{size:9}}}}}});
+
+  mk('aq-c2',{type:'bar',data:{labels:months,datasets:[
+    {label:'CO₂ ppm',data:co2V,backgroundColor:'rgba(2,119,189,.7)',borderRadius:3},
+    {label:'Baseline',data:months.map(()=>b.co2),type:'line',borderColor:'#dc2626',borderDash:[6,3],borderWidth:2,pointRadius:0,fill:false},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},boxWidth:10}}},
+    scales:{y:{ticks:{font:{size:9}}},x:{ticks:{font:{size:9}}}}}});
+
+  document.getElementById('aq-tb').innerHTML = months.map(m => {
+    const d = AQ.months[m];
+    const st = aqStatus(d);
+    const ok = st.ok === st.tot;
+    return `<tr>
+      <td style="font-weight:700;">${m}</td>
+      <td style="text-align:center;color:${d.suhu<=b.suhu?'var(--pri)':'var(--red)'};">${d.suhu}</td>
+      <td style="text-align:center;color:${d.rh<=b.rh?'var(--pri)':'var(--red)'};">${d.rh}</td>
+      <td style="text-align:center;color:${d.hcho<=b.hcho?'var(--pri)':'var(--red)'};">${d.hcho}</td>
+      <td style="text-align:center;color:${d.pm25<=b.pm25?'var(--pri)':'var(--red)'};">${d.pm25}</td>
+      <td style="text-align:center;color:${d.tvoc<=b.tvoc?'var(--pri)':'var(--red)'};">${d.tvoc}</td>
+      <td style="text-align:center;color:${d.co<=b.co?'var(--pri)':'var(--red)'};">${d.co}</td>
+      <td style="text-align:center;color:${d.co2<=b.co2?'var(--pri)':'var(--red)'};">${d.co2}</td>
+      <td style="text-align:center;font-weight:700;color:${d.aqi<=b.aqi?'var(--pri)':'var(--red)'};">${d.aqi}</td>
+      <td style="text-align:center;">${ok?'<span class="badge be">✅ Baik ('+st.ok+'/'+st.tot+')</span>':'<span class="badge br">⚠️ '+st.ok+'/'+st.tot+' OK</span>'}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('aq-baseline-note').innerHTML =
+    `<b>Baseline kualitas udara indoor (referensi internal gedung):</b> Suhu ≤${b.suhu}°C · RH ≤${b.rh}% · HCHO ≤${b.hcho} mg/m³ · PM2.5 ≤${b.pm25} µg/m³ · TVOC ≤${b.tvoc} mg/m³ · CO ≤${b.co} ppm · CO₂ ≤${b.co2} ppm · AQI ≤${b.aqi}. Rata-rata dihitung dari seluruh titik ukur per lantai (tidak termasuk sensor Outdoor).`;
+
+  const floors = (AQ.floors||[]).filter(f => f[5] != null).sort((a,c) => c[5]-a[5]).slice(0,8);
+  document.getElementById('aq-floor-tb').innerHTML = floors.length ? floors.map(f => `<tr>
+    <td style="font-weight:700;">${f[0]}</td>
+    <td style="text-align:center;">${f[1]}</td>
+    <td style="text-align:center;">${f[2]}</td>
+    <td style="text-align:center;">${f[3]==null?'-':f[3]}</td>
+    <td style="text-align:center;">${f[4]}</td>
+    <td style="text-align:center;font-weight:700;color:${f[5]<=b.aqi?'var(--pri)':'var(--red)'};">${f[5]}</td>
+  </tr>`).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--t2);">Belum ada data per lantai</td></tr>';
+}
+
+
+function rCh() {
+  const M = D.months.slice(0, 6);
+  const chP=D.ch_plan.slice(0,6), chR=D.ch_real.slice(0,6);
+  const otP=D.ot_plan.slice(0,6), otR=D.ot_real.slice(0,6);
+  const q1chP=chP.slice(0,3).reduce((a,b)=>a+b,0);
+  const q1chR=chR.slice(0,3).reduce((a,b)=>a+b,0);
+  const totP=(chP.concat(otP)).reduce((a,b)=>a+b,0);
+
+  document.getElementById('ch-kpi').innerHTML =
+    kc('blu','Chiller Plan Q1-Q2',q1chP.toFixed(2)+' MWh','Jan–Jun target') +
+    kc('blu','Others Plan Q1-Q2',otP.reduce((a,b)=>a+b,0).toFixed(2)+' MWh','Jan–Jun target') +
+    kc('pri','Total Eng Listrik',totP.toFixed(2)+' MWh','Q1+Q2 Planning');
+
+  mk('ch-c1',{type:'bar',data:{labels:M,datasets:[
+    {label:'Planning',data:chP,backgroundColor:'rgba(147,197,253,.7)',borderRadius:3},
+    {label:'Realisasi',data:chR,backgroundColor:'rgba(52,211,153,.8)',borderRadius:3},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},boxWidth:10}}},scales:{y:{ticks:{font:{size:9}}},x:{ticks:{font:{size:9}}}}}});
+
+  mk('ch-c2',{type:'bar',data:{labels:M,datasets:[
+    {label:'Planning',data:otP,backgroundColor:'rgba(251,191,36,.7)',borderRadius:3},
+    {label:'Realisasi',data:otR,backgroundColor:'rgba(249,115,22,.8)',borderRadius:3},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},boxWidth:10}}},scales:{y:{ticks:{font:{size:9}}},x:{ticks:{font:{size:9}}}}}});
+
+  function engRow(name, plan, real) {
+    const q1p=plan.slice(0,3).reduce((a,b)=>a+b,0), q1r=real.slice(0,3).reduce((a,b)=>a+b,0);
+    const q2p=plan.slice(3,6).reduce((a,b)=>a+b,0), q2r=real.slice(3,6).reduce((a,b)=>a+b,0);
+    const prog = (q1p+q2p)>0 ? (q1r+q2r)/(q1p+q2p)*100 : 0;
+    return `
+      <tr style="background:#f0f9ff;"><td colspan="12" style="font-weight:700;padding:6px 9px;font-size:10px;color:#1d4ed8;">${name}</td></tr>
+      <tr><td style="padding-left:16px;color:var(--t2);">Planning</td>${plan.map(v=>`<td style="text-align:center;">${v.toFixed(2)}</td>`).join('')}<td style="text-align:center;font-weight:600;">${q1p.toFixed(2)}</td><td style="text-align:center;">${q1r.toFixed(2)}</td><td style="text-align:center;font-weight:600;">${q2p.toFixed(2)}</td><td style="text-align:center;">${q2r.toFixed(2)}</td><td style="text-align:center;font-weight:700;color:var(--pri);">${prog.toFixed(1)}%</td></tr>
+      <tr style="background:#fffde7;"><td style="padding-left:16px;color:var(--amb);">Realisasi</td>${real.map(v=>`<td style="text-align:center;">${v>0?v.toFixed(2):'-'}</td>`).join('')}<td colspan="5"></td></tr>`;
+  }
+  document.getElementById('ch-tb').innerHTML = engRow('Chiller',chP,chR) + engRow('Others',otP,otR);
+}
+
+// ─── AIR / WATER UTILITIES ─────────────────────────────────────────────────
+function rAw() {
+  const M = D.months.slice(0, 6);
+  const lwP=D.lw_plan.slice(0,6), lwR=D.lw_real.slice(0,6);
+  const prog=lwP.map((p,i)=>p>0?lwR[i]/p*100:0);
+  const q1p=lwP.slice(0,3).reduce((a,b)=>a+b,0);
+  const q1r=lwR.slice(0,3).reduce((a,b)=>a+b,0);
+
+  document.getElementById('aw-kpi').innerHTML =
+    kc('water','Planning Q1',q1p.toFixed(2)+' m³','Jan–Mar') +
+    kc('water','Realisasi Q1',q1r.toFixed(2)+' m³','Jan–Mar') +
+    kc(q1p>0?'pri':'amb','Progress Q1',q1p>0?(q1r/q1p*100).toFixed(1)+'%':'—','vs Planning');
+
+  mk('aw-c1',{type:'bar',data:{labels:M,datasets:[
+    {label:'Planning',data:lwP,backgroundColor:'rgba(2,119,189,.5)',borderRadius:3},
+    {label:'Realisasi',data:lwR,backgroundColor:'rgba(2,119,189,.85)',borderRadius:3},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},boxWidth:10}}},scales:{y:{ticks:{font:{size:9}}},x:{ticks:{font:{size:9}}}}}});
+
+  mk('aw-c2',{type:'line',data:{labels:M,datasets:[
+    {label:'Progress %',data:prog,borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.1)',fill:true,tension:.4,pointRadius:4,borderWidth:2},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},boxWidth:10}}},scales:{y:{ticks:{font:{size:9},callback:v=>v.toFixed(0)+'%'},min:0},x:{ticks:{font:{size:9}}}}}});
+
+  document.getElementById('aw-tb').innerHTML = `
+    <tr style="background:#f0f9ff;"><td colspan="12" style="font-weight:700;padding:6px 9px;font-size:10px;color:#0277BD;">Landlord Water</td></tr>
+    <tr><td style="padding-left:16px;color:var(--t2);">Planning</td>${lwP.map(v=>`<td style="text-align:center;">${v.toFixed(2)}</td>`).join('')}<td style="text-align:center;font-weight:600;">${q1p.toFixed(2)}</td><td style="text-align:center;">${q1r.toFixed(2)}</td><td></td></tr>
+    <tr style="background:#fffde7;"><td style="padding-left:16px;color:var(--amb);">Realisasi</td>${lwR.map(v=>`<td style="text-align:center;">${v>0?v.toFixed(2):'-'}</td>`).join('')}<td colspan="3" style="text-align:center;font-weight:700;color:var(--pri);">${q1p>0?(q1r/q1p*100).toFixed(1)+'%':'—'}</td></tr>`;
+}
+
+// ─── DASHBOARD ─────────────────────────────────────────────────────────────
+function rDb() {
+  const M = D.months;
+  const active = M.filter((_,i) => D.el_use[i]>0 || D.kwh[i]>0);
+  const n = active.length || 1;
+  const elUse = D.el_use.slice(0,n).reduce((a,b)=>a+b,0);
+  const waUse = D.wa_use.slice(0,n).reduce((a,b)=>a+b,0);
+  const elBud = D.el_bud * n;
+  const waBud = D.wa_bud * n;
+  const ikeV = active.map((_,i) => D.area[i]>0 ? D.kwh[i]/D.area[i] : 0);
+  const avgIKE = ikeV.length ? ikeV.reduce((a,b)=>a+b,0)/ikeV.length : 0;
+  const co2V = active.map((_,i) => D.kwh[i]*D.faktor/1000);
+  const totCO2 = co2V.reduce((a,b)=>a+b,0);
+  const aP_el = elBud>0 ? elUse/elBud*100 : 0;
+  const aP_wa = waBud>0 ? waUse/waBud*100 : 0;
+
+  document.getElementById('db-kpi1').innerHTML =
+    kc('elec','Electric YTD Budget',rpM(elBud),n+' bulan') +
+    kc('elec','Electric YTD Realisasi',rpM(elUse),aP_el.toFixed(1)+'% terpakai') +
+    kc('water','Water YTD Budget',rpM(waBud),n+' bulan') +
+    kc('water','Water YTD Realisasi',rpM(waUse),aP_wa.toFixed(1)+'% terpakai');
+
+  document.getElementById('db-kpi2').innerHTML =
+    kc(avgIKE<=IKE_TARGET?'pri':'red','Avg IKE',avgIKE.toFixed(2)+' kWh/m²','vs Baseline 20 kWh/m² ('+(avgIKE<=IKE_TARGET?'✅ Efisien':'⚠️ +'+((avgIKE-IKE_TARGET)/IKE_TARGET*100).toFixed(1)+'%')+')') +
+    kc('co2','Total CO₂ YTD',totCO2.toFixed(1)+' Ton','Jan–'+active[active.length-1]) +
+    kc('amb','Saving Electric',rpM(elBud-elUse),'Efisiensi '+(100-aP_el).toFixed(1)+'%') +
+    kc('pri','Saving Water',rpM(waBud-waUse),'Efisiensi '+(100-aP_wa).toFixed(1)+'%');
+
+  mk('db-el',{type:'bar',data:{labels:active,datasets:[
+    {label:'Anggaran',data:active.map(()=>D.el_bud/1e9),backgroundColor:'rgba(147,197,253,.6)',borderRadius:3},
+    {label:'Realisasi',data:active.map((_,i)=>D.el_use[i]/1e9),backgroundColor:'rgba(230,81,0,.8)',borderRadius:3},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},boxWidth:10}}},scales:{y:{ticks:{font:{size:9},callback:v=>v.toFixed(2)+'M'}},x:{ticks:{font:{size:9}}}}}});
+
+  mk('db-wa',{type:'bar',data:{labels:active,datasets:[
+    {label:'Anggaran',data:active.map(()=>D.wa_bud/1e9),backgroundColor:'rgba(147,197,253,.6)',borderRadius:3},
+    {label:'Realisasi',data:active.map((_,i)=>D.wa_use[i]/1e9),backgroundColor:'rgba(2,119,189,.8)',borderRadius:3},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},boxWidth:10}}},scales:{y:{ticks:{font:{size:9},callback:v=>v.toFixed(3)+'M'}},x:{ticks:{font:{size:9}}}}}});
+
+  mk('db-ik',{type:'line',data:{labels:active,datasets:[
+    {label:'IKE kWh/m²',data:ikeV,borderColor:'#2563eb',fill:false,tension:.4,pointRadius:5,borderWidth:2},
+    {label:'Baseline (20)',data:active.map(()=>IKE_TARGET),borderColor:'#dc2626',borderDash:[5,3],borderWidth:1.5,pointRadius:0,fill:false},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},boxWidth:10}}},scales:{y:{ticks:{font:{size:9}},beginAtZero:true,suggestedMax:Math.max(IKE_TARGET,...ikeV)*1.15},x:{ticks:{font:{size:9}}}}}});
+
+  mk('db-co',{type:'line',data:{labels:active,datasets:[
+    {label:'CO₂ (Ton)',data:co2V,borderColor:'#2E7D32',backgroundColor:'rgba(46,125,50,.1)',fill:true,tension:.4,pointRadius:5,borderWidth:2},
+    {label:'Baseline 2025',data:active.map(()=>D.base_co2),borderColor:'#dc2626',borderDash:[5,3],borderWidth:1.5,pointRadius:0,fill:false},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},boxWidth:10}}},scales:{y:{ticks:{font:{size:9},callback:v=>v.toFixed(0)+' T'},min:700},x:{ticks:{font:{size:9}}}}}});
+}
+
+// ─── SETTINGS ──────────────────────────────────────────────────────────────
+function openSet() {
+  document.getElementById('cfg-sid').value    = CFG.sid;
+  document.getElementById('cfg-gid1').value   = CFG.gid1;
+  document.getElementById('cfg-gid-aq-apr').value = CFG.gidAqApr;
+  document.getElementById('cfg-gid-aq-mei').value = CFG.gidAqMei;
+  document.getElementById('cfg-gid-aq-jun').value = CFG.gidAqJun;
+  document.getElementById('cfg-drive').value  = CFG.driveId;
+  document.getElementById('cfg-sheet1').value = CFG.sheet1;
+  document.getElementById('cfg-refresh').value = String(CFG.ref);
+  document.getElementById('cfg-gkey').value   = CFG.gkey;
+  document.getElementById('set-msg').textContent = '';
+  document.getElementById('set-panel').classList.add('open');
+}
+function closeSet() { document.getElementById('set-panel').classList.remove('open'); }
+
+function saveSet() {
+  const sid  = document.getElementById('cfg-sid').value.trim();
+  const gid1 = document.getElementById('cfg-gid1').value.trim();
+  const gidAqApr = document.getElementById('cfg-gid-aq-apr').value.trim();
+  const gidAqMei = document.getElementById('cfg-gid-aq-mei').value.trim();
+  const gidAqJun = document.getElementById('cfg-gid-aq-jun').value.trim();
+  const driveRaw = document.getElementById('cfg-drive').value.trim();
+  const driveId  = extractDriveId(driveRaw);
+  const sh1  = document.getElementById('cfg-sheet1').value.trim();
+  const ref  = document.getElementById('cfg-refresh').value;
+
+  if (!(sid && gid1) && !driveId) {
+    document.getElementById('set-msg').textContent = '❌ Isi minimal Sheet ID + GID (disarankan), atau File ID Drive';
+    document.getElementById('set-msg').className = 'set-msg err';
+    return;
+  }
+  localStorage.setItem('en_sid',  sid);
+  localStorage.setItem('en_gid1', gid1);
+  localStorage.setItem('en_gid_aq_apr', gidAqApr);
+  localStorage.setItem('en_gid_aq_mei', gidAqMei);
+  localStorage.setItem('en_gid_aq_jun', gidAqJun);
+  localStorage.setItem('en_drive', driveId);
+  localStorage.setItem('en_sh1',   sh1 || DEFAULT_SHEET1);
+  localStorage.setItem('en_ref',  ref);
+  localStorage.setItem('en_gkey', document.getElementById('cfg-gkey').value.trim());
+  closeSet();
+  loadData(true);
+}
+
+// ─── NOTIFICATIONS ───────────────────────────────────────────────────────────
+function buildNotifications() {
+  const alerts = [];
+  const M = D.months;
+
+  // Check each active month for anomalies
+  M.forEach((m, i) => {
+    // Electric over budget
+    if (D.el_use[i] > 0) {
+      const pct = D.el_use[i] / D.el_bud * 100;
+      if (pct > 100) alerts.push({ level:'crit', icon:'🔴', title:`Electric ${m} — OVER BUDGET`, sub:`${pct.toFixed(1)}% terpakai (Rp ${idr(D.el_use[i]-D.el_bud)} melebihi anggaran)` });
+      else if (pct > 95) alerts.push({ level:'warn', icon:'🟠', title:`Electric ${m} — Hampir Over Budget`, sub:`${pct.toFixed(1)}% dari anggaran (sisa Rp ${idr(D.el_bud-D.el_use[i])})` });
+    }
+    // Water over budget
+    if (D.wa_use[i] > 0) {
+      const pct = D.wa_use[i] / D.wa_bud * 100;
+      if (pct > 100) alerts.push({ level:'crit', icon:'🔴', title:`Water ${m} — OVER BUDGET`, sub:`${pct.toFixed(1)}% terpakai (Rp ${idr(D.wa_use[i]-D.wa_bud)} melebihi anggaran)` });
+      else if (pct > 95) alerts.push({ level:'warn', icon:'🟠', title:`Water ${m} — Hampir Over Budget`, sub:`${pct.toFixed(1)}% dari anggaran` });
+    }
+    // IKE above target
+    if (D.kwh[i] > 0 && D.area[i] > 0) {
+      const ike = D.kwh[i] / D.area[i];
+      if (ike > IKE_TARGET*1.15) alerts.push({ level:'crit', icon:'⚡', title:`IKE ${m} — Sangat Tinggi`, sub:`IKE ${ike.toFixed(2)} kWh/m² (baseline ${IKE_TARGET}, over ${(ike-IKE_TARGET).toFixed(2)} kWh/m²)` });
+      else if (ike > IKE_TARGET) alerts.push({ level:'warn', icon:'⚡', title:`IKE ${m} — Di Atas Baseline`, sub:`IKE ${ike.toFixed(2)} kWh/m² (baseline ${IKE_TARGET} kWh/m²)` });
+    }
+    // CO₂ above baseline
+    if (D.kwh[i] > 0 && D.base_co2 > 0) {
+      const co2 = D.kwh[i] * D.faktor / 1000;
+      if (co2 > D.base_co2 * 1.05) alerts.push({ level:'warn', icon:'🌍', title:`CO₂ ${m} — Di Atas Baseline 2025`, sub:`${co2.toFixed(1)} Ton vs Baseline ${D.base_co2.toFixed(1)} Ton (+${(co2-D.base_co2).toFixed(1)} Ton)` });
+    }
+  });
+
+  // kWh vs baseline overall
+  const activeKwh = M.filter((_,i)=>D.kwh[i]>0);
+  if (activeKwh.length > 0) {
+    const avgKwh = D.kwh.filter(v=>v>0).reduce((a,b)=>a+b,0) / activeKwh.length;
+    const saving = (D.base_kwh - avgKwh) / D.base_kwh * 100;
+    if (saving < 0) alerts.push({ level:'info', icon:'📊', title:'Rata-rata kWh PLN Di Atas Baseline 2025', sub:`Avg ${(avgKwh/1e6).toFixed(2)}M kWh/bln vs Baseline ${(D.base_kwh/1e6).toFixed(2)}M kWh/bln` });
+    else alerts.push({ level:'ok', icon:'✅', title:'kWh PLN Di Bawah Baseline 2025', sub:`Hemat rata-rata ${saving.toFixed(1)}% vs baseline 2025` });
+  }
+
+  // No data available
+  const hasData = M.some((_,i)=>D.el_use[i]>0);
+  if (!hasData) alerts.push({ level:'info', icon:'ℹ️', title:'Data belum tersedia', sub:'Hubungkan ke Google Sheets atau isi data manual' });
+
+  renderNotifications(alerts);
+}
+
+function renderNotifications(alerts) {
+  const list = document.getElementById('notif-list');
+  const badge = document.getElementById('nb-badge');
+  const critWarn = alerts.filter(a => a.level === 'crit' || a.level === 'warn');
+
+  if (!alerts.length) {
+    list.innerHTML = '<div class="notif-empty">✅ Tidak ada alert aktif</div>';
+    badge.classList.remove('show');
+    return;
+  }
+
+  badge.textContent = critWarn.length || alerts.length;
+  if (critWarn.length > 0 || alerts.length > 0) badge.classList.add('show');
+
+  const bg = { crit:'#fef2f2', warn:'#fffbeb', ok:'#f0fdf4', info:'#f0f9ff' };
+  list.innerHTML = alerts.map(a => `
+    <div class="notif-item" style="background:${bg[a.level]||'#fff'};">
+      <span class="notif-icon">${a.icon}</span>
+      <div class="notif-body">
+        <div class="nt">${a.title}</div>
+        <div class="ns">${a.sub}</div>
+      </div>
+    </div>`).join('');
+}
+
+function toggleNotif() {
+  const panel = document.getElementById('notif-panel');
+  panel.classList.toggle('open');
+}
+
+// Close notif when clicking outside
+document.addEventListener('click', e => {
+  const wrap = document.querySelector('.notif-wrap');
+  if (wrap && !wrap.contains(e.target)) document.getElementById('notif-panel').classList.remove('open');
+});
+
+// ─── AI ASSISTANT ─────────────────────────────────────────────────────────
+function buildAIContext() {
+  const M = D.months;
+  const active = M.filter((_,i) => D.el_use[i]>0 || D.kwh[i]>0);
+  if (!active.length) return 'Data belum tersedia.';
+
+  const elBud = D.el_bud * active.length;
+  const elUse = active.map((_,i)=>D.el_use[i]).reduce((a,b)=>a+b,0);
+  const waBud = D.wa_bud * active.length;
+  const waUse = active.map((_,i)=>D.wa_use[i]).reduce((a,b)=>a+b,0);
+  const ikeV = active.map((_,i)=>D.area[i]>0?D.kwh[i]/D.area[i]:0);
+  const avgIKE = ikeV.reduce((a,b)=>a+b,0)/active.length;
+  const totKWH = active.map((_,i)=>D.kwh[i]).reduce((a,b)=>a+b,0);
+  const totCO2 = (totKWH * D.faktor / 1000).toFixed(1);
+  const avgOcc = (active.map((_,i)=>D.occ[i]).reduce((a,b)=>a+b,0) / active.length * 100).toFixed(1);
+
+  const monthDetail = active.map((m,i) => {
+    const elPct = D.el_use[i]>0 ? (D.el_use[i]/D.el_bud*100).toFixed(1) : '-';
+    const waPct = D.wa_use[i]>0 ? (D.wa_use[i]/D.wa_bud*100).toFixed(1) : '-';
+    const ike   = D.area[i]>0   ? (D.kwh[i]/D.area[i]).toFixed(2) : '-';
+    const co2   = D.kwh[i]>0    ? (D.kwh[i]*D.faktor/1000).toFixed(1) : '-';
+    return `${m}: Listrik ${elPct}% anggaran | Air ${waPct}% anggaran | IKE ${ike} kWh/m² | CO₂ ${co2} Ton`;
+  }).join('\n');
+
+  return `DATA ENERGY MONITOR — Wisma 46 Kota BNI 2026
+Periode aktif: ${active[0]} – ${active[active.length-1]} (${active.length} bulan)
+
+OPEX LISTRIK:
+- Anggaran/bulan: Rp ${idr(D.el_bud)}
+- Total anggaran YTD: Rp ${idr(elBud)}
+- Total realisasi YTD: Rp ${idr(elUse)}
+- Usage: ${elBud>0?(elUse/elBud*100).toFixed(1):'0'}% | Saving: ${elBud>0?((1-elUse/elBud)*100).toFixed(1):'0'}%
+
+OPEX AIR:
+- Anggaran/bulan: Rp ${idr(D.wa_bud)}
+- Total anggaran YTD: Rp ${idr(waBud)}
+- Total realisasi YTD: Rp ${idr(waUse)}
+- Usage: ${waBud>0?(waUse/waBud*100).toFixed(1):'0'}% | Saving: ${waBud>0?((1-waUse/waBud)*100).toFixed(1):'0'}%
+
+IKE & CO₂:
+- Total kWh PLN YTD: ${idr(totKWH)} kWh
+- Baseline 2025: ${idr(D.base_kwh)} kWh/bulan
+- Rata-rata IKE: ${avgIKE.toFixed(2)} kWh/m² — Baseline gedung perkantoran: 20 kWh/m²/bulan (ASEAN-USAID, 240 kWh/m²/tahun)
+- Status IKE: ${avgIKE<=IKE_TARGET?'✅ Di bawah/sesuai baseline':'⚠️ Di atas baseline 20 kWh/m² (+'+((avgIKE-IKE_TARGET)/IKE_TARGET*100).toFixed(1)+'%)'}
+- Total CO₂ YTD: ${totCO2} Ton
+- Baseline CO₂ 2025: ${D.base_co2} Ton/bulan
+- Faktor Emisi: ${D.faktor} kg/kWh
+- Rata-rata Occupancy: ${avgOcc}%
+
+DATA BULANAN:
+${monthDetail}
+
+Jawab dalam Bahasa Indonesia. Ringkas, profesional, dan berbasis data di atas.`;
+}
+
+let AI_HIST = [];
+
+function initAI() {
+  const hasKey = !!CFG.gkey;
+  document.getElementById('ai-key-notice').style.display = hasKey ? 'none' : 'block';
+  if (!AI_HIST.length) {
+    addAIMsg('ai', '👋 Halo! Saya siap membantu menganalisis data energi Wisma 46. Silakan tanya tentang konsumsi listrik, air, IKE, emisi CO₂, atau efisiensi anggaran.');
+  }
+}
+
+function addAIMsg(role, text) {
+  const msgs = document.getElementById('ai-msgs');
+  const isUser = role === 'user';
+  const div = document.createElement('div');
+  div.className = `ai-msg ${role}`;
+  div.innerHTML = `
+    <div class="ai-avatar">${isUser ? '👤' : '🤖'}</div>
+    <div class="ai-bubble">${text}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+function addTyping() {
+  const msgs = document.getElementById('ai-msgs');
+  const div = document.createElement('div');
+  div.className = 'ai-msg ai'; div.id = 'ai-typing';
+  div.innerHTML = `<div class="ai-avatar">🤖</div><div class="ai-bubble"><div class="typing-dot"><span></span><span></span><span></span></div></div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function removeTyping() {
+  const t = document.getElementById('ai-typing');
+  if (t) t.remove();
+}
+
+function askAI(q) {
+  document.getElementById('ai-q').value = q;
+  sendAI();
+}
+
+async function sendAI() {
+  const input = document.getElementById('ai-q');
+  const q = input.value.trim();
+  if (!q) return;
+
+  const key = CFG.gkey;
+  if (!key) {
+    addAIMsg('ai', '⚠️ Groq API Key belum diisi. Buka ⚙️ Pengaturan → isi Groq API Key → Simpan.');
+    return;
+  }
+
+  input.value = '';
+  document.getElementById('ai-send-btn').disabled = true;
+  addAIMsg('user', q);
+  addTyping();
+
+  AI_HIST.push({ role:'user', content: q });
+
+  try {
+    const ctx = buildAIContext();
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+key },
+      body: JSON.stringify({
+        model: 'llama-3.1-8b-instant',
+        max_tokens: 800,
+        messages: [
+          { role:'system', content:`Anda adalah AI analyst energi untuk Wisma 46 Kota BNI, gedung komersial 50 lantai di Jakarta, dikelola PT Swadharma Primautama. Selalu analisis berdasarkan data berikut:
+
+${ctx}` },
+          ...AI_HIST.slice(-6),
+        ]
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error?.message || `HTTP ${res.status}`);
+    }
+
+    const data = await res.json();
+    const reply = data.choices?.[0]?.message?.content || 'Tidak ada respons.';
+    removeTyping();
+    addAIMsg('ai', reply.replace(/\n/g, '<br>'));
+    AI_HIST.push({ role:'assistant', content: reply });
+
+  } catch(e) {
+    removeTyping();
+    addAIMsg('ai', `❌ Error: ${e.message}. Pastikan Groq API Key valid dan koneksi internet aktif.`);
+    AI_HIST.pop();
+  }
+
+  document.getElementById('ai-send-btn').disabled = false;
+  input.focus();
+}
+
+// ─── INIT ──────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+  await loadData(true);
+});
+</script>
+</body>
+</html>
