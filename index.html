@@ -349,6 +349,16 @@ tr:hover td{background:#f0fdf4;}
         </div>
       </div>
       </div>
+
+      <div class="kpi4" id="ike3y-kpi" style="margin-top:14px;"></div>
+      <div class="g2">
+        <div class="cd"><div class="cd-t">📊 KWH PLN — Perbandingan 3 Tahun</div><div style="height:210px;"><canvas id="ike3y-c1"></canvas></div></div>
+        <div class="cd"><div class="cd-t">🏢 Landlord vs 🏬 Tenant vs ❄️ Chiller (kWh) — Tahun Berjalan</div><div style="height:210px;"><canvas id="ike3y-c2"></canvas></div></div>
+      </div>
+      <div class="tw"><div class="tw-h"><span class="tw-title">📊 Data Konsumsi Energi Listrik & IKE — Histori 3 Tahun</span></div>
+      <table><thead><tr><th>Bulan</th><th id="ike3y-th-y1"></th><th id="ike3y-th-y2"></th><th id="ike3y-th-y3"></th><th>Landlord (kWh)</th><th>Tenant (kWh)</th><th>Chiller (kWh)</th><th>Occupancy %</th></tr></thead><tbody id="ike3y-tb"></tbody></table>
+      <div style="margin-top:10px;font-size:9.5px;color:var(--t2);" id="ike3y-note"></div>
+      </div>
     </div>
 
     <div class="vw" id="vw-co">
@@ -478,6 +488,7 @@ const ID_MONTHS = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agu
 const MELEC_MONTHS = ID_MONTHS; // tab bulanan "Pemakaian Listrik Harian" — dicek semua, otomatis pakai yang ada
 let MELEC = { Januari:null, Februari:null, Maret:null, April:null, Mei:null, Juni:null };
 let melecActiveMonth = '';
+let IKE3Y = null; // { years:['2024','2025','2026'], data:{ '2024':[{month,kwh,occPct,landlordKwh,tenantKwh},...], ... } }
 
 // ─── STATE ─────────────────────────────────────────────────────────────────
 let D = JSON.parse(JSON.stringify(FALLBACK));
@@ -753,6 +764,90 @@ function findRowAny(rows, substrLower, from) {
 // Kolom C=idx2(No), D=idx3(Item), E=idx4(label Budget/Usage/Planing/dst), F..K=idx5..10 (Jan..Jun)
 function monthVals(row) { return [5,6,7,8,9,10].map(i => cleanNum(row[i])); }
 
+// ─── PARSE "DATA KONSUMSI ENERGI LISTRIK & IKE 3 Tahunan" ──────────────────
+// Tabel historis multi-tahun (2024/2025/2026), per bulan, per tahun berisi:
+// KWH PLN, Occupancy (M2 & %), Landlord (KWH & KWH/M2), Tenants (KWH & KWH/M2),
+// Chillers (KWH & KWH/M2). Kolom "Bulan" sejajar dengan judul tabel (bukan
+// selalu kolom A) — dan kolom dicari lewat teks header per baris, bukan
+// offset tetap, karena blok tahun 2024 punya 1 kolom kosong ekstra
+// (Occupancy M2 → kosong → Occupancy %) yang tidak ada di blok 2025/2026.
+function parseIkeHistory3Y(rows) {
+  const norm = s => (s || '').toString().trim().toLowerCase();
+
+  let titleRow = -1, titleCol = -1;
+  for (let i = 0; i < rows.length && titleRow < 0; i++) {
+    for (let ci = 0; ci < rows[i].length; ci++) {
+      const t = norm(rows[i][ci]);
+      if (t.includes('konsumsi energi listrik') && t.includes('ike')) { titleRow = i; titleCol = ci; break; }
+    }
+  }
+  if (titleRow < 0) return null;
+
+  // baris label tahun (2024/2025/2026 dst) — cari beberapa baris setelah judul
+  let yearRow = -1;
+  const yearCols = {};
+  for (let i = titleRow + 1; i < Math.min(titleRow + 6, rows.length); i++) {
+    rows[i].forEach((c, ci) => { const t = norm(c); if (/^20\d{2}$/.test(t)) { yearCols[t] = ci; yearRow = i; } });
+    if (Object.keys(yearCols).length) break;
+  }
+  const years = Object.keys(yearCols).sort();
+  if (!years.length) return null;
+
+  const hdr1 = yearRow + 1; // baris grup: KWH PLN / Occupancy / Landlord / Tenant(s) / Chillers
+  const hdr2 = yearRow + 2; // baris sub: M2 / % / KWH / KWH per M2 (berulang per kategori)
+  if (hdr2 >= rows.length) return null;
+
+  function findInRow(rowIdx, label, fromCol, toCol) {
+    if (!rows[rowIdx]) return -1;
+    for (let ci = fromCol; ci < toCol; ci++) { if (norm(rows[rowIdx][ci]).includes(label)) return ci; }
+    return -1;
+  }
+
+  const yearMeta = {};
+  years.forEach((yr, yi) => {
+    const fromCol = yearCols[yr];
+    const toCol = (yi + 1 < years.length) ? yearCols[years[yi + 1]] : fromCol + 12;
+    const landlordCol = findInRow(hdr1, 'landlord', fromCol, toCol);
+    const tenantCol = findInRow(hdr1, 'tenant', fromCol, toCol);
+    const chillerCol = findInRow(hdr1, 'chiller', fromCol, toCol);
+    yearMeta[yr] = {
+      kwhCol: fromCol, // kolom "KWH PLN" selalu sejajar dengan label tahun itu sendiri
+      occM2Col: findInRow(hdr2, 'm2', fromCol + 1, toCol),
+      occPctCol: findInRow(hdr2, '%', fromCol + 1, toCol),
+      landlordKwhCol: landlordCol, landlordIkeCol: landlordCol >= 0 ? landlordCol + 1 : -1,
+      tenantKwhCol: tenantCol, tenantIkeCol: tenantCol >= 0 ? tenantCol + 1 : -1,
+      chillerKwhCol: chillerCol, chillerIkeCol: chillerCol >= 0 ? chillerCol + 1 : -1,
+    };
+  });
+
+  const MONTH_ID = ['jan','feb','mar','apr','mei','may','jun','jul','agu','aug','sep','sept','okt','oct','nov','des','dec'];
+  const monthCol = titleCol; // kolom "Month" & data bulan selalu sejajar dengan kolom judul tabel
+  const dataStart = hdr2 + 1;
+  const data = {}; years.forEach(yr => data[yr] = []);
+  let rowsRead = 0;
+  for (let i = dataStart; i < Math.min(dataStart + 20, rows.length); i++) {
+    const mLabel = (rows[i][monthCol] || '').toString().trim();
+    if (!mLabel || !MONTH_ID.includes(mLabel.toLowerCase().slice(0, 3))) { if (rowsRead > 0) break; else continue; }
+    rowsRead++;
+    years.forEach(yr => {
+      const c = yearMeta[yr];
+      const kwh = c.kwhCol >= 0 ? cleanNum(rows[i][c.kwhCol]) : 0;
+      const landlordKwh = c.landlordKwhCol >= 0 ? cleanNum(rows[i][c.landlordKwhCol]) : 0;
+      data[yr].push({
+        month: mLabel,
+        kwh,
+        occM2: c.occM2Col >= 0 ? cleanNum(rows[i][c.occM2Col]) : 0,
+        occPct: c.occPctCol >= 0 ? cleanNum(rows[i][c.occPctCol]) : 0,
+        landlordKwh,
+        tenantKwh: c.tenantKwhCol >= 0 ? cleanNum(rows[i][c.tenantKwhCol]) : (kwh ? kwh - landlordKwh : 0),
+        chillerKwh: c.chillerKwhCol >= 0 ? cleanNum(rows[i][c.chillerKwhCol]) : 0,
+      });
+    });
+  }
+  if (!rowsRead) return null;
+  return { years, data };
+}
+
 function parseEnergySheet(csv) {
   const rows = parseCSV(csv);
   const out = {};
@@ -909,37 +1004,47 @@ async function loadData(manual=false) {
     dataSource = 'sheets';
     via = via || 'sheets';
 
-    // ── Kualitas Udara — auto-deteksi tab "Kualitas udara <Bulan><YY>" (tanpa GID) ──
+    // ── Data Konsumsi Energi Listrik & IKE 3 Tahunan (histori 2024/2025/2026) ──
+    // Coba cari tabelnya di sheet utama dulu; kalau tak ada, coba tab "Rekap" (auto-deteksi nama, tanpa GID)
+    IKE3Y = parseIkeHistory3Y(parseCSV(csv1));
+    if (!IKE3Y) {
+      const csvRekap = await fetchSheetByName('Rekap', 6000);
+      if (csvRekap) IKE3Y = parseIkeHistory3Y(parseCSV(csvRekap));
+    }
+    msgs.push(IKE3Y ? `Histori 3 Tahun IKE: ${IKE3Y.years.join('/')} terbaca` : 'Histori 3 Tahun IKE: tabel "DATA KONSUMSI ENERGI LISTRIK & IKE" belum ditemukan');
+
+    // ── Kualitas Udara — auto-deteksi tab "Kualitas udara <Bulan><YY>" (tanpa GID, paralel) ──
     // Begitu tab bulan baru ditambahkan di spreadsheet dengan pola nama ini, otomatis
     // ikut terbaca di refresh berikutnya — tidak perlu isi GID apa pun.
     const nowYY = new Date().getFullYear() % 100;
     const aqYyCandidates = [nowYY, nowYY - 1];
-    let aqLoaded = 0;
-    for (const bln of ID_MONTHS) {
-      let parsedAq = null;
+    const aqResults = await Promise.all(ID_MONTHS.map(async (bln) => {
       for (const yy of aqYyCandidates) {
-        const csvAq = await fetchSheetByName(`Kualitas udara ${bln}${yy}`);
-        if (csvAq) { parsedAq = parseAirSheet(csvAq); if (parsedAq) break; }
+        const csvAq = await fetchSheetByName(`Kualitas udara ${bln}${yy}`, 6000);
+        if (csvAq) { const p = parseAirSheet(csvAq); if (p) return p; }
       }
-      if (parsedAq) {
-        AQ.months[bln] = parsedAq.avg;
-        AQ.baseline = parsedAq.baseline;
-        AQ.floors = parsedAq.floors; // selalu ditimpa → otomatis pakai bulan terbaru yang ditemukan
-        aqLoaded++;
-      }
-    }
-    if (!aqLoaded) msgs.push('Kualitas Udara: tab "Kualitas udara <Bulan><Tahun>" belum ditemukan, memakai data cadangan');
+      return null;
+    }));
+    let aqLoaded = 0; const aqFound = [];
+    ID_MONTHS.forEach((bln, i) => {
+      const p = aqResults[i];
+      if (!p) return;
+      AQ.months[bln] = p.avg;
+      AQ.baseline = p.baseline;
+      AQ.floors = p.floors; // selalu ditimpa → otomatis pakai bulan terbaru yang ditemukan
+      aqLoaded++; aqFound.push(bln);
+    });
+    msgs.push(aqLoaded ? `Kualitas Udara: ${aqFound.join(', ')} terbaca` : 'Kualitas Udara: tab "Kualitas udara <Bulan><Tahun>" belum ditemukan, memakai data cadangan');
 
-    // ── Pemakaian Listrik Harian — auto-deteksi tab per nama bulan (Januari..Desember, tanpa GID) ──
+    // ── Pemakaian Listrik Harian — auto-deteksi tab per nama bulan (paralel, tanpa GID) ──
     // Tab baru (mis. "Juli") otomatis ikut muncul di refresh berikutnya, tanpa konfigurasi apa pun.
-    let melecLoaded = 0;
-    for (const bln of MELEC_MONTHS) {
-      const csvM = await fetchSheetByName(bln);
-      let parsedM = csvM ? parseDailyElectric(csvM) : null;
-      MELEC[bln] = parsedM;
-      if (parsedM) melecLoaded++;
-    }
-    if (!melecLoaded) msgs.push('Pemakaian Listrik Harian: belum ada tab bulanan (Januari, Februari, dst.) yang terbaca');
+    const melecResults = await Promise.all(MELEC_MONTHS.map(bln => fetchSheetByName(bln, 6000).then(csv => csv ? parseDailyElectric(csv) : null)));
+    let melecLoaded = 0; const melecFound = [];
+    MELEC_MONTHS.forEach((bln, i) => {
+      MELEC[bln] = melecResults[i];
+      if (melecResults[i]) { melecLoaded++; melecFound.push(bln); }
+    });
+    msgs.push(melecLoaded ? `Pemakaian Listrik Harian: ${melecFound.join(', ')} terbaca` : 'Pemakaian Listrik Harian: belum ada tab bulanan (Januari, Februari, dst.) yang terbaca');
 
     setSyb('live');
     const now = new Date().toLocaleTimeString('id-ID');
@@ -951,6 +1056,7 @@ async function loadData(manual=false) {
     dataSource = 'fallback';
     D = JSON.parse(JSON.stringify(FALLBACK));
     AQ = JSON.parse(JSON.stringify(AQ_FALLBACK));
+    IKE3Y = null;
     setSyb('local');
     const msg = (CFG.driveId||CFG.sid) ? `⚠️ Gagal ambil data — ${e.message}` : '⚠️ Belum ada koneksi';
     document.getElementById('last-upd').textContent = `Data cadangan (embedded) · ${msg}`;
@@ -1006,7 +1112,7 @@ function render(id) {
   else if (id==='el') { rOpex('el', D.el_bud, D.el_use, '⚡', 'elec'); rElDaily(); }
   else if (id==='wa') rOpex('wa', D.wa_bud, D.wa_use, '💧', 'water');
   else if (id==='ew') rEw();
-  else if (id==='ik') rIk();
+  else if (id==='ik') { rIk(); rIke3y(); }
   else if (id==='co') rCo();
   else if (id==='aq') rAq();
   else if (id==='ch') rCh();
@@ -1087,10 +1193,72 @@ function rElDailyChart() {
   mk('el-daily-c', {type:'bar', data:{labels:m.days.map(d=>d.date), datasets:[
     {type:'bar', label:'WBP', data:m.days.map(d=>d.wbp), backgroundColor:'rgba(217,119,6,.75)', stack:'s', borderRadius:2, order:2},
     {type:'bar', label:'LWBP', data:m.days.map(d=>d.lwbp), backgroundColor:'rgba(13,148,136,.75)', stack:'s', borderRadius:2, order:2},
-    {type:'line', label:'Total', data:m.days.map(d=>d.total), borderColor:'var(--elec)', backgroundColor:'rgba(230,81,0,.12)', fill:false, tension:.35, pointRadius:1.5, borderWidth:2, order:1},
+    {type:'line', label:'Total', data:m.days.map(d=>d.total), borderColor:'#E65100', backgroundColor:'rgba(230,81,0,.12)', fill:false, tension:.35, pointRadius:1.5, borderWidth:2, order:1},
   ]}, options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
     plugins:{legend:{labels:{font:{size:10},boxWidth:10}}, tooltip:{callbacks:{label: it => `${it.dataset.label}: ${idr(it.parsed.y)} kWh`}}},
     scales:{y:{stacked:false,ticks:{font:{size:9},callback:v=>idr(v)}},x:{stacked:true,ticks:{font:{size:7.5},maxRotation:60,minRotation:60,autoSkip:true,maxTicksLimit:16}}}}});
+}
+
+// ─── HISTORI 3 TAHUN — KWH PLN & Landlord/Tenant/Chiller ───────────────────
+function rIke3y() {
+  if (!IKE3Y) {
+    document.getElementById('ike3y-kpi').innerHTML = kc('red','Histori 3 Tahun','Data belum ditemukan','Tabel "DATA KONSUMSI ENERGI LISTRIK & IKE" belum terdeteksi di spreadsheet');
+    document.getElementById('ike3y-tb').innerHTML = '';
+    document.getElementById('ike3y-note').textContent = '';
+    mk('ike3y-c1',{type:'line',data:{labels:[],datasets:[]},options:{responsive:true,maintainAspectRatio:false}});
+    mk('ike3y-c2',{type:'bar',data:{labels:[],datasets:[]},options:{responsive:true,maintainAspectRatio:false}});
+    return;
+  }
+  const years = IKE3Y.years;
+  const curYear = years[years.length - 1];
+  const prevYear = years.length > 1 ? years[years.length - 2] : null;
+  const curData = IKE3Y.data[curYear] || [];
+  const monthLabels = curData.map(d => d.month);
+
+  const totalsByYear = years.map(yr => IKE3Y.data[yr].filter(d => d.kwh > 0).reduce((a, d) => a + d.kwh, 0));
+  const curTotal = totalsByYear[totalsByYear.length - 1];
+  const prevTotal = totalsByYear.length > 1 ? totalsByYear[totalsByYear.length - 2] : 0;
+  const yoy = prevTotal > 0 ? (curTotal - prevTotal) / prevTotal * 100 : 0;
+  const curMonthsWithData = curData.filter(d => d.kwh > 0);
+
+  document.getElementById('ike3y-kpi').innerHTML =
+    kc('elec', `Total kWh PLN ${curYear}`, idr(curTotal) + ' kWh', curMonthsWithData.length + ' bulan tercatat') +
+    kc(yoy <= 0 ? 'pri' : 'red', prevYear ? `vs ${prevYear}` : 'YoY', (yoy >= 0 ? '+' : '') + yoy.toFixed(1) + '%', prevTotal ? idr(prevTotal) + ' kWh tahun lalu' : '-') +
+    kc('blu', 'Total Landlord', idr(curMonthsWithData.reduce((a, d) => a + d.landlordKwh, 0)) + ' kWh', `Tahun ${curYear}`) +
+    kc('amb', 'Total Tenant', idr(curMonthsWithData.reduce((a, d) => a + d.tenantKwh, 0)) + ' kWh', `Tahun ${curYear}`);
+
+  const palette = ['#94a3b8', '#0d9488', '#E65100', '#7c3aed'];
+  mk('ike3y-c1', { type:'line', data:{ labels: monthLabels, datasets: years.map((yr, yi) => ({
+    label: yr,
+    data: monthLabels.map((_, mi) => (IKE3Y.data[yr][mi] && IKE3Y.data[yr][mi].kwh > 0) ? IKE3Y.data[yr][mi].kwh : null),
+    borderColor: palette[yi % palette.length], backgroundColor: 'transparent', tension:.35, pointRadius:3, borderWidth:2, spanGaps:false,
+  })) }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{labels:{font:{size:10},boxWidth:10}} },
+    scales:{ y:{ticks:{font:{size:9},callback:v=>idr(v)}}, x:{ticks:{font:{size:9}}} } } });
+
+  const cmpMonths = curMonthsWithData.map(d => d.month);
+  mk('ike3y-c2', { type:'bar', data:{ labels: cmpMonths, datasets:[
+    { label:'Landlord', data: curMonthsWithData.map(d=>d.landlordKwh), backgroundColor:'rgba(2,119,189,.8)', borderRadius:3 },
+    { label:'Tenant', data: curMonthsWithData.map(d=>d.tenantKwh), backgroundColor:'rgba(217,119,6,.8)', borderRadius:3 },
+    { label:'Chiller', data: curMonthsWithData.map(d=>d.chillerKwh), backgroundColor:'rgba(13,148,136,.8)', borderRadius:3 },
+  ]}, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{labels:{font:{size:10},boxWidth:10}} },
+    scales:{ y:{ticks:{font:{size:9},callback:v=>idr(v)}}, x:{ticks:{font:{size:9}}} } } });
+
+  ['ike3y-th-y1','ike3y-th-y2','ike3y-th-y3'].forEach((id, i) => { const el = document.getElementById(id); if (el) el.textContent = years[i] ? `kWh ${years[i]}` : ''; });
+  document.getElementById('ike3y-tb').innerHTML = curMonthsWithData.length ? curData.map((cur, mi) => {
+    if (!(cur.kwh > 0)) return null;
+    const cells3y = years.map(yr => { const d = IKE3Y.data[yr][mi]; return d && d.kwh > 0 ? idr(d.kwh) : '-'; });
+    const occ = cur.occPct ? (cur.occPct <= 1 ? cur.occPct * 100 : cur.occPct).toFixed(1) + '%' : '-';
+    return `<tr>
+      <td style="font-weight:700;">${cur.month}</td>
+      ${cells3y.map(v => `<td style="text-align:right;">${v}</td>`).join('')}
+      <td style="text-align:right;">${idr(cur.landlordKwh)}</td>
+      <td style="text-align:right;">${idr(cur.tenantKwh)}</td>
+      <td style="text-align:right;">${idr(cur.chillerKwh)}</td>
+      <td style="text-align:center;">${occ}</td>
+    </tr>`;
+  }).filter(Boolean).join('') : `<tr><td colspan="8" style="text-align:center;color:var(--t2);">Belum ada data bulan berjalan</td></tr>`;
+
+  document.getElementById('ike3y-note').textContent = `Landlord, Tenant, dan Chiller diambil langsung dari tabel "DATA KONSUMSI ENERGI LISTRIK & IKE 3 Tahunan" untuk tahun ${curYear}.`;
 }
 
 // ─── OPEX BUILDER ──────────────────────────────────────────────────────────
@@ -1158,11 +1326,14 @@ function rEw() {
   ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},boxWidth:10}}},
     scales:{y:{ticks:{font:{size:9},callback:v=>v.toFixed(2)+'M'}},x:{ticks:{font:{size:9}}}}}});
 
-  mk('ew-c2',{type:'bar',data:{labels:active,datasets:[
-    {label:'Electric',data:active.map((_,i)=>D.el_use[i]/1e9),backgroundColor:'var(--elec)',borderRadius:3},
-    {label:'Water',data:active.map((_,i)=>D.wa_use[i]/1e9),backgroundColor:'var(--water)',borderRadius:3},
-  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},boxWidth:10}}},
-    scales:{x:{stacked:true},y:{stacked:true,ticks:{font:{size:9},callback:v=>v.toFixed(2)+'M'}}}}});
+  const totElec = active.reduce((a,_,i)=>a+D.el_use[i],0);
+  const totWater = active.reduce((a,_,i)=>a+D.wa_use[i],0);
+  const totEW = totElec + totWater;
+  mk('ew-c2',{type:'doughnut',data:{labels:['Electric','Water'],datasets:[
+    {data:[totElec,totWater],backgroundColor:['#E65100','#0277BD'],borderColor:'#fff',borderWidth:2,hoverOffset:8},
+  ]},options:{responsive:true,maintainAspectRatio:false,cutout:'62%',
+    plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}},
+      tooltip:{callbacks:{label:it=>` ${it.label}: ${rpF(it.parsed)} (${(it.parsed/totEW*100).toFixed(1)}%)`}}}}});
 
   document.getElementById('ew-tb').innerHTML = active.map((_,i) => `<tr>
     <td style="font-weight:700;">${active[i]}</td>
