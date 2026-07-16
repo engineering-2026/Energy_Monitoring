@@ -363,6 +363,12 @@ tr:hover td{background:#f0fdf4;}
       <div class="tw"><div class="tw-h"><span class="tw-title">⚡ Detail Electric 2026</span></div>
       <table><thead><tr><th>Bulan</th><th>Anggaran (Rp)</th><th>Realisasi (Rp)</th><th>Usage %</th><th>Saving %</th><th>KPI</th></tr></thead><tbody id="el-tb"></tbody></table></div>
 
+      <div class="tw"><div class="tw-h"><span class="tw-title">📆 Kinerja Kumulatif Electric — Q1 / Q1-Q2 / Q1-Q3 / Q1-Q4</span></div>
+      <table><thead><tr><th>Periode</th><th>Anggaran (Rp)</th><th>Realisasi (Rp)</th><th>Progress</th></tr></thead><tbody id="el-q-tb"></tbody></table></div>
+
+      <div class="tw"><div class="tw-h"><span class="tw-title">📊 5. Data Konsumsi Energi Listrik & IKE — Detail 3 Tahun (2024–2026)</span></div>
+      <div id="el-ike3y-wide"></div></div>
+
       <div class="kpi4" id="el-daily-kpi"></div>
       <div class="g2">
         <div class="cd"><div class="cd-t">📊 Perbandingan Bulanan — Total Pemakaian (kWh)</div><div style="height:220px;"><canvas id="el-daily-cmp"></canvas></div>
@@ -388,6 +394,9 @@ tr:hover td{background:#f0fdf4;}
       </div>
       <div class="tw"><div class="tw-h"><span class="tw-title">💧 Detail Water 2026</span></div>
       <table><thead><tr><th>Bulan</th><th>Anggaran (Rp)</th><th>Realisasi (Rp)</th><th>Usage %</th><th>Saving %</th><th>KPI</th></tr></thead><tbody id="wa-tb"></tbody></table></div>
+
+      <div class="tw"><div class="tw-h"><span class="tw-title">📆 Kinerja Kumulatif Water — Q1 / Q1-Q2 / Q1-Q3 / Q1-Q4</span></div>
+      <table><thead><tr><th>Periode</th><th>Anggaran (Rp)</th><th>Realisasi (Rp)</th><th>Progress</th></tr></thead><tbody id="wa-q-tb"></tbody></table></div>
     </div>
 
     <div class="vw" id="vw-ew">
@@ -855,7 +864,8 @@ function findRowAny(rows, substrLower, from) {
   return -1;
 }
 // Kolom C=idx2(No), D=idx3(Item), E=idx4(label Budget/Usage/Planing/dst), F..K=idx5..10 (Jan..Jun)
-function monthVals(row) { return [5,6,7,8,9,10].map(i => cleanNum(row[i])); }
+function monthVals(row) { return [5,6,7,8,9,10,11,12,13,14,15,16].map(i => cleanNum(row[i])); }
+function quarterVals(row) { return [17,18,19,20].map(i => cleanNum(row[i])); } // Q1, Q1-Q2, Q1-Q3, Q1-Q4 (kumulatif, sudah dihitung di sheet)
 
 // ─── PARSE "DATA KONSUMSI ENERGI LISTRIK & IKE 3 Tahunan" ──────────────────
 // Tabel historis multi-tahun (2024/2025/2026), per bulan, per tahun berisi:
@@ -926,14 +936,18 @@ function parseIkeHistory3Y(rows) {
       const c = yearMeta[yr];
       const kwh = c.kwhCol >= 0 ? cleanNum(rows[i][c.kwhCol]) : 0;
       const landlordKwh = c.landlordKwhCol >= 0 ? cleanNum(rows[i][c.landlordKwhCol]) : 0;
+      const occM2v = c.occM2Col >= 0 ? cleanNum(rows[i][c.occM2Col]) : 0;
       data[yr].push({
         month: mLabel,
         kwh,
-        occM2: c.occM2Col >= 0 ? cleanNum(rows[i][c.occM2Col]) : 0,
+        occM2: occM2v,
         occPct: c.occPctCol >= 0 ? cleanNum(rows[i][c.occPctCol]) : 0,
         landlordKwh,
+        landlordIke: c.landlordIkeCol >= 0 ? cleanNum(rows[i][c.landlordIkeCol]) : (occM2v ? landlordKwh/occM2v : 0),
         tenantKwh: c.tenantKwhCol >= 0 ? cleanNum(rows[i][c.tenantKwhCol]) : (kwh ? kwh - landlordKwh : 0),
+        tenantIke: c.tenantIkeCol >= 0 ? cleanNum(rows[i][c.tenantIkeCol]) : 0,
         chillerKwh: c.chillerKwhCol >= 0 ? cleanNum(rows[i][c.chillerKwhCol]) : 0,
+        chillerIke: c.chillerIkeCol >= 0 ? cleanNum(rows[i][c.chillerIkeCol]) : 0,
       });
     });
   }
@@ -948,11 +962,17 @@ function parseEnergySheet(csv) {
 
   // ── Electric ──
   const iE = findRow(rows, 3, v => v.toLowerCase() === 'electric');
-  if (iE >= 0) { out.el_bud = monthVals(rows[iE]).find(v => v > 0) || 0; out.el_use = monthVals(rows[iE + 1]); }
+  if (iE >= 0) {
+    out.el_bud = monthVals(rows[iE]).find(v => v > 0) || 0; out.el_use = monthVals(rows[iE + 1]);
+    out.el_cum_bud = quarterVals(rows[iE]); out.el_cum_use = quarterVals(rows[iE + 1]);
+  }
 
   // ── Water ──
   const iW = findRow(rows, 3, v => v.toLowerCase() === 'water');
-  if (iW >= 0) { out.wa_bud = monthVals(rows[iW]).find(v => v > 0) || 0; out.wa_use = monthVals(rows[iW + 1]); }
+  if (iW >= 0) {
+    out.wa_bud = monthVals(rows[iW]).find(v => v > 0) || 0; out.wa_use = monthVals(rows[iW + 1]);
+    out.wa_cum_bud = quarterVals(rows[iW]); out.wa_cum_use = quarterVals(rows[iW + 1]);
+  }
 
   // ── IKE & CO2 monthly table (Bulan/2026 ...) ──
   let iIke = findRowAny(rows, 'ike & co');
@@ -1216,8 +1236,8 @@ function renderCurrent() {
 
 function render(id) {
   if (id==='db') rDb();
-  else if (id==='el') { rOpex('el', D.el_bud, D.el_use, '⚡', 'elec'); rElDaily(); }
-  else if (id==='wa') rOpex('wa', D.wa_bud, D.wa_use, '💧', 'water');
+  else if (id==='el') { rOpex('el', D.el_bud, D.el_use, '⚡', 'elec', D.el_cum_bud, D.el_cum_use); rElDaily(); document.getElementById('el-ike3y-wide').innerHTML = buildIke3yWideTable(); }
+  else if (id==='wa') rOpex('wa', D.wa_bud, D.wa_use, '💧', 'water', D.wa_cum_bud, D.wa_cum_use);
   else if (id==='ew') rEw();
   else if (id==='ik') { rIk(); rIke3y(); }
   else if (id==='co') rCo();
@@ -1307,6 +1327,52 @@ function rElDailyChart() {
 }
 
 // ─── HISTORI 3 TAHUN — KWH PLN & Landlord/Tenant/Chiller ───────────────────
+// ─── Tabel detail lebar 3 tahun (replika layout asli sheet) — dipakai di halaman Electric ──
+function buildIke3yWideTable() {
+  if (!IKE3Y) return '<div style="padding:24px;text-align:center;color:var(--t2);">Data histori 3 tahun belum tersedia dari koneksi live saat ini.</div>';
+  const years = IKE3Y.years;
+  const yearBg = ['#fff9c4', '#c8f7c5', '#bfe3fb', '#f3d9fa'];
+  const pct = v => (v <= 1 ? v * 100 : v).toFixed(1) + '%';
+
+  const thead1 = '<tr><th rowspan="3" style="vertical-align:middle;background:#f9fafb;">Bulan</th>' +
+    years.map((yr,yi) => `<th colspan="9" style="text-align:center;background:${yearBg[yi%yearBg.length]};color:#1a1a1a;">${yr}</th>`).join('') + '</tr>';
+  const thead2 = '<tr>' + years.map((yr,yi) => `<th colspan="1" style="background:${yearBg[yi%yearBg.length]}66;">KWH PLN</th><th colspan="2" style="background:${yearBg[yi%yearBg.length]}66;">Occupancy</th><th colspan="2" style="background:${yearBg[yi%yearBg.length]}66;">Landlord</th><th colspan="2" style="background:${yearBg[yi%yearBg.length]}66;">Tenants</th><th colspan="2" style="background:${yearBg[yi%yearBg.length]}66;">Chillers</th>`).join('') + '</tr>';
+  const thead3 = '<tr>' + years.map(() => `<th></th><th>M2</th><th>%</th><th>KWH</th><th>/M2</th><th>KWH</th><th>/M2</th><th>KWH</th><th>/M2</th>`).join('') + '</tr>';
+
+  const monthCount = Math.max(...years.map(yr => IKE3Y.data[yr].length));
+  let rows = '';
+  for (let mi = 0; mi < monthCount; mi++) {
+    let monthLabel = '';
+    const cells = years.map(yr => {
+      const d = IKE3Y.data[yr][mi];
+      if (d && d.month) monthLabel = d.month;
+      if (!d || !(d.kwh > 0)) return '<td colspan="9" style="text-align:center;color:var(--t2);">-</td>';
+      return `<td style="text-align:right;">${idr(d.kwh)}</td>` +
+        `<td style="text-align:right;">${idr(d.occM2)}</td><td style="text-align:center;">${pct(d.occPct)}</td>` +
+        `<td style="text-align:right;">${idr(d.landlordKwh)}</td><td style="text-align:right;">${d.landlordIke.toFixed(2)}</td>` +
+        `<td style="text-align:right;">${idr(d.tenantKwh)}</td><td style="text-align:right;">${(d.tenantIke||0).toFixed(2)}</td>` +
+        `<td style="text-align:right;">${idr(d.chillerKwh)}</td><td style="text-align:right;">${(d.chillerIke||0).toFixed(2)}</td>`;
+    });
+    if (!monthLabel) continue;
+    rows += `<tr><td style="font-weight:700;">${monthLabel}</td>${cells.join('')}</tr>`;
+  }
+
+  const avgRow = years.map(yr => {
+    const rows_ = IKE3Y.data[yr].filter(d => d.kwh > 0);
+    const n = rows_.length || 1;
+    const avg = k => rows_.reduce((a,d)=>a+d[k],0)/n;
+    if (!rows_.length) return '<td colspan="9" style="text-align:center;color:var(--t2);">-</td>';
+    return `<td style="text-align:right;">${idr(avg('kwh'))}</td>` +
+      `<td style="text-align:right;">${idr(avg('occM2'))}</td><td style="text-align:center;">${pct(avg('occPct'))}</td>` +
+      `<td style="text-align:right;">${idr(avg('landlordKwh'))}</td><td style="text-align:right;">${avg('landlordIke').toFixed(2)}</td>` +
+      `<td style="text-align:right;">${idr(avg('tenantKwh'))}</td><td style="text-align:right;">${avg('tenantIke').toFixed(2)}</td>` +
+      `<td style="text-align:right;">${idr(avg('chillerKwh'))}</td><td style="text-align:right;">${avg('chillerIke').toFixed(2)}</td>`;
+  });
+  rows += `<tr style="background:#f9fafb;font-weight:700;"><td>Rata-rata Bulanan</td>${avgRow.join('')}</tr>`;
+
+  return `<div style="overflow-x:auto;"><table style="font-size:10px;white-space:nowrap;"><thead>${thead1}${thead2}${thead3}</thead><tbody>${rows}</tbody></table></div>`;
+}
+
 function rIke3y() {
   if (!IKE3Y) {
     document.getElementById('ike3y-kpi').innerHTML = kc('red','Histori 3 Tahun','Data belum ditemukan','Tabel "DATA KONSUMSI ENERGI LISTRIK & IKE" belum terdeteksi di spreadsheet');
@@ -1390,7 +1456,7 @@ function rIke3y() {
 }
 
 // ─── OPEX BUILDER ──────────────────────────────────────────────────────────
-function rOpex(pfx, bud, usage, icon, klass) {
+function rOpex(pfx, bud, usage, icon, klass, cumBud, cumUse) {
   const M = D.months;
   const active = M.filter((_,i) => usage[i] > 0);
   const useV = active.map((_,i) => usage[i]);
@@ -1429,6 +1495,22 @@ function rOpex(pfx, bud, usage, icon, klass) {
     <td style="text-align:center;font-weight:700;color:var(--pri);">${sav_[i]>0?sav_[i].toFixed(1)+'%':'-'}</td>
     <td style="text-align:center;">${badge(pct_[i])}</td>
   </tr>`).join('');
+
+  // ── Kinerja Kumulatif (Q1/Q1-Q2/Q1-Q3/Q1-Q4) — langsung dari kolom kumulatif di sheet ──
+  const qTb = document.getElementById(`${pfx}-q-tb`);
+  if (qTb) {
+    const labels = ['Q1 (Jan-Mar)', 'Q1-Q2 (Jan-Jun)', 'Q1-Q3 (Jan-Sep)', 'Q1-Q4 (Jan-Des)'];
+    qTb.innerHTML = (cumBud && cumUse) ? labels.map((lbl, i) => {
+      const b = cumBud[i], u = cumUse[i];
+      const p = b > 0 ? u / b * 100 : 0;
+      return `<tr>
+        <td style="font-weight:700;">${lbl}</td>
+        <td style="text-align:right;">${rpF(b)}</td>
+        <td style="text-align:right;">${u > 0 ? rpF(u) : '-'}</td>
+        <td style="text-align:center;">${u > 0 ? badge(p) + ` <span style="color:var(--t2);font-size:9.5px;">(${p.toFixed(1)}%)</span>` : '-'}</td>
+      </tr>`;
+    }).join('') : `<tr><td colspan="4" style="text-align:center;color:var(--t2);">Belum tersedia</td></tr>`;
+  }
 }
 
 // ─── ELECTRIC + WATER ──────────────────────────────────────────────────────
