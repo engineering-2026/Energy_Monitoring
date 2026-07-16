@@ -292,16 +292,20 @@ tr:hover td{background:#f0fdf4;}
       <table><thead><tr><th>Bulan</th><th>Anggaran (Rp)</th><th>Realisasi (Rp)</th><th>Usage %</th><th>Saving %</th><th>KPI</th></tr></thead><tbody id="el-tb"></tbody></table></div>
 
       <div class="kpi4" id="el-daily-kpi"></div>
+      <div class="g2">
+        <div class="cd"><div class="cd-t">📊 Perbandingan Bulanan — Total Pemakaian (kWh)</div><div style="height:220px;"><canvas id="el-daily-cmp"></canvas></div>
+          <div style="font-size:9.5px;color:var(--t2);margin-top:6px;text-align:center;">💡 Klik salah satu batang untuk melihat tren hariannya di grafik sebelah kanan</div>
+        </div>
+        <div class="cd">
+          <div class="cd-t" style="display:flex;align-items:center;justify-content:space-between;">
+            <span>📈 Tren Harian — WBP / LWBP / Total (kWh)</span>
+            <select class="set-input" style="width:auto;font-size:11px;padding:3px 8px;" id="el-daily-month" onchange="melecSelectMonth(this.value)"></select>
+          </div>
+          <div style="height:220px;"><canvas id="el-daily-c"></canvas></div>
+        </div>
+      </div>
       <div class="tw"><div class="tw-h"><span class="tw-title">📅 Pemakaian Listrik Harian (Meter PLN) — Otomatis per Tab Bulan</span></div>
       <table><thead><tr><th>Bulan</th><th>Jumlah Hari</th><th>WBP (kWh)</th><th>LWBP (kWh)</th><th>Total (kWh)</th><th>Rata-rata/hari (kWh)</th></tr></thead><tbody id="el-daily-tb"></tbody></table></div>
-
-      <div class="cd">
-        <div class="cd-t" style="display:flex;align-items:center;justify-content:space-between;">
-          <span>Tren Harian Total Pemakaian (kWh)</span>
-          <select class="set-input" style="width:auto;font-size:11px;padding:3px 8px;" id="el-daily-month" onchange="melecSelectMonth(this.value)"></select>
-        </div>
-        <div style="height:220px;"><canvas id="el-daily-c"></canvas></div>
-      </div>
     </div>
 
     <div class="vw" id="vw-wa">
@@ -644,26 +648,66 @@ function sheetCsv(wb, name) {
   return XLSX.utils.sheet_to_csv(ws, { blankrows: false });
 }
 
-// ─── FETCH SHEET BY NAME (tanpa GID) — pakai Google Visualization API ──────
-// Endpoint ini CORS-safe & tidak butuh GID sama sekali, cukup nama tab persis.
+// ─── FETCH SHEET BY NAME (tanpa GID) — Google Visualization API via JSONP ──
+// PENTING: endpoint gviz TIDAK mengirim header CORS untuk fetch()/XHR biasa,
+// jadi request via fetch() akan selalu gagal diam-diam (bukan berarti tab tak
+// ada). Solusinya: pakai teknik JSONP (inject <script> tag) — cara ini TIDAK
+// terkena pembatasan CORS karena browser selalu boleh me-load <script src=...>
+// lintas domain. Google akan memanggil fungsi callback kita dengan data sheet
+// dalam bentuk JSON begitu script itu selesai dimuat.
 // Dipakai untuk auto-deteksi tab baru (Kualitas Udara & Pemakaian Listrik Harian):
 // begitu tab baru ditambahkan di spreadsheet dengan nama yang cocok, web ini
 // otomatis menemukannya di refresh berikutnya — tanpa perlu isi GID manual.
-async function fetchSheetByName(name, timeout=8000) {
+function gvizJsonp(sid, params, timeout=9000) {
+  return new Promise((resolve) => {
+    if (!sid) return resolve(null);
+    const cb = 'gviz_cb_' + Math.random().toString(36).slice(2) + '_' + Date.now();
+    let done = false;
+    const script = document.createElement('script');
+    const cleanup = () => {
+      if (script.parentNode) script.parentNode.removeChild(script);
+      try { delete window[cb]; } catch(e) { window[cb] = undefined; }
+    };
+    const finish = (val) => { if (done) return; done = true; clearTimeout(timer); cleanup(); resolve(val); };
+    const timer = setTimeout(() => finish(null), timeout);
+    window[cb] = (resp) => {
+      try {
+        if (!resp || resp.status === 'error' || !resp.table) { finish(null); return; }
+        finish(resp.table);
+      } catch(e) { finish(null); }
+    };
+    script.onerror = () => finish(null);
+    script.src = `https://docs.google.com/spreadsheets/d/${sid}/gviz/tq?tqx=out:json;responseHandler=${cb}&${params}`;
+    document.head.appendChild(script);
+  });
+}
+
+// Ubah objek "table" hasil gviz (cols+rows) jadi teks CSV, supaya bisa dipakai
+// ulang oleh parser CSV yang sudah ada (parseDailyElectric, parseAirSheet, dst.)
+function gvizTableToCsv(table) {
+  if (!table || !table.rows) return '';
+  const esc = v => {
+    if (v === null || v === undefined) return '';
+    let s = String(v);
+    if (/[",\n]/.test(s)) s = '"' + s.replace(/"/g,'""') + '"';
+    return s;
+  };
+  return table.rows.map(r => (r.c || []).map(c => {
+    if (!c) return '';
+    // pakai nilai terformat (f) kalau ada — supaya format angka Indonesia
+    // (titik ribuan, koma desimal) tetap sama seperti CSV export biasa
+    const val = (c.f !== undefined && c.f !== null) ? c.f : c.v;
+    return esc(val === null || val === undefined ? '' : val);
+  }).join(',')).join('\n');
+}
+
+async function fetchSheetByName(name, timeout=9000) {
   const sid = CFG.sid;
   if (!sid || !name) return null;
-  const url = `https://docs.google.com/spreadsheets/d/${sid}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(name)}`;
-  try {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), timeout);
-    const res = await fetch(url, { signal: ctrl.signal });
-    clearTimeout(timer);
-    if (!res.ok) return null; // tab dengan nama ini belum ada / tidak ditemukan
-    const text = await res.text();
-    if (/^\s*<(!doctype|html)/i.test(text)) return null; // dapat halaman login, bukan data
-    if (/^\s*(#|\/\*)/.test(text) || /invalid query|unable to parse/i.test(text)) return null; // error gviz
-    return text;
-  } catch (e) { return null; }
+  const table = await gvizJsonp(sid, `sheet=${encodeURIComponent(name)}`, timeout);
+  if (!table) return null;
+  const csv = gvizTableToCsv(table);
+  return csv || null;
 }
 
 // ─── FETCH FROM GOOGLE SHEETS (legacy — dipakai jika file sudah native Google Sheets) ──
@@ -973,6 +1017,8 @@ function render(id) {
 // ─── PEMAKAIAN LISTRIK HARIAN (Jan-Jun 2026) ───────────────────────────────
 function melecSelectMonth(bln) {
   melecActiveMonth = bln;
+  const sel = document.getElementById('el-daily-month');
+  if (sel) sel.value = bln;
   rElDailyChart();
 }
 
@@ -1010,7 +1056,26 @@ function rElDaily() {
     if (!loaded.includes(melecActiveMonth)) melecActiveMonth = loaded[loaded.length-1] || '';
     sel.value = melecActiveMonth;
   }
+  rElMonthlyCompareChart(loaded);
   rElDailyChart();
+}
+
+// Grafik perbandingan antar-bulan — bar WBP+LWBP bertumpuk, bisa diklik untuk drill-down
+function rElMonthlyCompareChart(loaded) {
+  mk('el-daily-cmp', {
+    type: 'bar',
+    data: { labels: loaded, datasets: loaded.length ? [
+      { label:'WBP', data: loaded.map(b=>MELEC[b].wbp), backgroundColor:'rgba(217,119,6,.85)', borderRadius:3, stack:'s' },
+      { label:'LWBP', data: loaded.map(b=>MELEC[b].lwbp), backgroundColor:'rgba(13,148,136,.85)', borderRadius:3, stack:'s' },
+    ] : [] },
+    options: {
+      responsive:true, maintainAspectRatio:false, onClick: (evt, els) => { if (els && els.length) melecSelectMonth(loaded[els[0].index]); },
+      onHover: (evt, els) => { evt.native.target.style.cursor = els.length ? 'pointer' : 'default'; },
+      plugins:{ legend:{labels:{font:{size:10},boxWidth:10}},
+        tooltip:{ callbacks:{ footer: items => 'Total: '+idr(items.reduce((s,it)=>s+it.parsed.y,0))+' kWh — klik untuk lihat tren harian' } } },
+      scales:{ x:{stacked:true, ticks:{font:{size:9}}}, y:{stacked:true, ticks:{font:{size:9},callback:v=>idr(v)}} },
+    }
+  });
 }
 
 function rElDailyChart() {
@@ -1019,10 +1084,13 @@ function rElDailyChart() {
     mk('el-daily-c', {type:'line', data:{labels:[], datasets:[]}, options:{responsive:true,maintainAspectRatio:false}});
     return;
   }
-  mk('el-daily-c', {type:'line', data:{labels:m.days.map(d=>d.date), datasets:[
-    {label:'Total (kWh)', data:m.days.map(d=>d.total), borderColor:'var(--elec)', backgroundColor:'rgba(230,81,0,.1)', fill:true, tension:.3, pointRadius:2, borderWidth:2},
-  ]}, options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},boxWidth:10}}},
-    scales:{y:{ticks:{font:{size:9},callback:v=>idr(v)}},x:{ticks:{font:{size:8},maxRotation:60,minRotation:60}}}}});
+  mk('el-daily-c', {type:'bar', data:{labels:m.days.map(d=>d.date), datasets:[
+    {type:'bar', label:'WBP', data:m.days.map(d=>d.wbp), backgroundColor:'rgba(217,119,6,.75)', stack:'s', borderRadius:2, order:2},
+    {type:'bar', label:'LWBP', data:m.days.map(d=>d.lwbp), backgroundColor:'rgba(13,148,136,.75)', stack:'s', borderRadius:2, order:2},
+    {type:'line', label:'Total', data:m.days.map(d=>d.total), borderColor:'var(--elec)', backgroundColor:'rgba(230,81,0,.12)', fill:false, tension:.35, pointRadius:1.5, borderWidth:2, order:1},
+  ]}, options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    plugins:{legend:{labels:{font:{size:10},boxWidth:10}}, tooltip:{callbacks:{label: it => `${it.dataset.label}: ${idr(it.parsed.y)} kWh`}}},
+    scales:{y:{stacked:false,ticks:{font:{size:9},callback:v=>idr(v)}},x:{stacked:true,ticks:{font:{size:7.5},maxRotation:60,minRotation:60,autoSkip:true,maxTicksLimit:16}}}}});
 }
 
 // ─── OPEX BUILDER ──────────────────────────────────────────────────────────
