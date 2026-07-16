@@ -171,7 +171,7 @@ tr:hover td{background:#f0fdf4;}
   </div>
   <div class="set-body">
     <div style="font-size:11px;color:#166534;line-height:1.6;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 12px;margin-bottom:12px;">
-      ✅ <b>Sudah terhubung default</b> ke Google Sheets (Sheet ID diawali <code>1JU_y9ox6...</code>, GID <code>750612645</code>, tab "Energy Management Monitoring") — sudah dikonfirmasi bisa diakses publik. 7 tabel di dalamnya (Electric, Water, Electric+Water, IKE&CO₂, Chiller/Others, Landlord Water) otomatis kebaca dari 1 GID ini.
+      ✅ <b>Sudah terhubung default</b> ke Google Sheets (Sheet ID diawali <code>1JU_y9ox6...</code>, GID <code>750612645</code>, tab "Energy Management Monitoring") — sudah dikonfirmasi bisa diakses publik. 7 tabel di dalamnya (Electric, Water, Electric+Water, IKE&CO₂, Chiller/Others, Landlord Water) otomatis kebaca dari 1 GID ini. Data <b>Kualitas Udara</b> & <b>Pemakaian Listrik Harian</b> (tab bulanan) otomatis terdeteksi dari namanya — lihat catatan di bawah.
     </div>
     <div class="set-group">
       <div class="set-label">📋 Sheet ID (Google Sheets asli)</div>
@@ -184,20 +184,8 @@ tr:hover td{background:#f0fdf4;}
       <div class="set-hint">Klik tab ini di spreadsheet → lihat URL: <code>...edit?gid=<b>[ANGKA INI]</b></code></div>
     </div>
     <div class="set-divider"></div>
-    <div style="font-size:11px;color:#854d0e;line-height:1.6;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;margin-bottom:10px;">
-      🌬️ <b>Kualitas Udara</b> ada di 3 tab terpisah (April/Mei/Juni 2026). Isi GID masing-masing tab di bawah — kosongkan yang belum ada datanya.
-    </div>
-    <div class="set-group">
-      <div class="set-label">🌬️ GID — Sheet "Kualitas udara April26"</div>
-      <input class="set-input" id="cfg-gid-aq-apr" placeholder="Contoh: 123456789">
-    </div>
-    <div class="set-group">
-      <div class="set-label">🌬️ GID — Sheet "Kualitas udara Mei26"</div>
-      <input class="set-input" id="cfg-gid-aq-mei" placeholder="Contoh: 234567891">
-    </div>
-    <div class="set-group">
-      <div class="set-label">🌬️ GID — Sheet "Kualitas udara Juni26"</div>
-      <input class="set-input" id="cfg-gid-aq-jun" placeholder="Contoh: 345678912">
+    <div style="font-size:11px;color:#166534;line-height:1.6;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 12px;margin-bottom:10px;">
+      🤖 <b>Otomatis — tidak perlu isi GID.</b> Data <b>Kualitas Udara</b> (tab "Kualitas udara &lt;Bulan&gt;&lt;Tahun&gt;", mis. "Kualitas udara Juli26") dan <b>Pemakaian Listrik Harian</b> (tab bernama bulan, mis. "Juli") otomatis dicari & dibaca langsung dari nama tabnya setiap refresh. Kalau Bapak menambah tab baru dengan pola nama ini di spreadsheet, web ini otomatis ikut menampilkannya — tidak perlu balik ke sini atau minta GID lagi.
     </div>
     <div class="set-divider"></div>
     <div class="set-group">
@@ -302,6 +290,18 @@ tr:hover td{background:#f0fdf4;}
       </div>
       <div class="tw"><div class="tw-h"><span class="tw-title">⚡ Detail Electric 2026</span></div>
       <table><thead><tr><th>Bulan</th><th>Anggaran (Rp)</th><th>Realisasi (Rp)</th><th>Usage %</th><th>Saving %</th><th>KPI</th></tr></thead><tbody id="el-tb"></tbody></table></div>
+
+      <div class="kpi4" id="el-daily-kpi"></div>
+      <div class="tw"><div class="tw-h"><span class="tw-title">📅 Pemakaian Listrik Harian (Meter PLN) — Otomatis per Tab Bulan</span></div>
+      <table><thead><tr><th>Bulan</th><th>Jumlah Hari</th><th>WBP (kWh)</th><th>LWBP (kWh)</th><th>Total (kWh)</th><th>Rata-rata/hari (kWh)</th></tr></thead><tbody id="el-daily-tb"></tbody></table></div>
+
+      <div class="cd">
+        <div class="cd-t" style="display:flex;align-items:center;justify-content:space-between;">
+          <span>Tren Harian Total Pemakaian (kWh)</span>
+          <select class="set-input" style="width:auto;font-size:11px;padding:3px 8px;" id="el-daily-month" onchange="melecSelectMonth(this.value)"></select>
+        </div>
+        <div style="height:220px;"><canvas id="el-daily-c"></canvas></div>
+      </div>
     </div>
 
     <div class="vw" id="vw-wa">
@@ -467,6 +467,14 @@ const AQ_FALLBACK = {
   ], // [lantai, suhu, rh, pm25, co2, aqi]
 };
 
+// ─── PEMAKAIAN LISTRIK HARIAN — Jan s/d Jun 2026 (per tab bulanan) ─────────
+// Diisi dari sheet "Januari".."Juni" (data meter PLN harian: STAND METER WBP/LWBP,
+// PEMAKAIAN WBP/LWBP/TOTAL). null = belum ada data (GID belum diisi / gagal fetch).
+const ID_MONTHS = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const MELEC_MONTHS = ID_MONTHS; // tab bulanan "Pemakaian Listrik Harian" — dicek semua, otomatis pakai yang ada
+let MELEC = { Januari:null, Februari:null, Maret:null, April:null, Mei:null, Juni:null };
+let melecActiveMonth = '';
+
 // ─── STATE ─────────────────────────────────────────────────────────────────
 let D = JSON.parse(JSON.stringify(FALLBACK));
 let AQ = JSON.parse(JSON.stringify(AQ_FALLBACK));
@@ -478,9 +486,8 @@ let dataSource = 'fallback'; // 'sheets' | 'fallback'
 // ─── CONFIG (localStorage, dengan default koneksi spreadsheet Wisma 46) ─────
 const DEFAULT_SID   = '1JU_y9ox6cplmZLMiSFUEFjtPkW-w8D7B'; // Google Sheets asli (dikonfirmasi publik & terbaca) — link terbaru dari Bapak Adi
 const DEFAULT_GID1  = '750612645'; // sheet "Energy Management Monitoring" — berisi 7 tabel (Electric/Water/E+W/IKE&CO2/Chiller&Others/Landlord Water)
-const DEFAULT_GID_AQ_APR = '1336118249'; // sheet "Kualitas udara April26"
-const DEFAULT_GID_AQ_MEI = '1151582534'; // sheet "Kualitas udara Mei26"
-const DEFAULT_GID_AQ_JUN = '513935244';  // sheet "Kualitas udara Juni26"
+// (GID manual per-tab untuk Kualitas Udara & Pemakaian Listrik Harian tidak lagi dipakai —
+// kedua data ini sekarang otomatis ditemukan lewat nama tab, lihat fetchSheetByName())
 const DEFAULT_DRIVE_ID = '';        // jalur cadangan (Drive .xlsx biasa) — dikosongkan karena sudah pakai Sheets asli
 const DEFAULT_SHEET1 = 'Energy Management Monitoring';
 
@@ -499,9 +506,6 @@ const CFG = {
   // Jalur utama: Google Sheets asli via Sheet ID + GID (CORS-safe, resmi didukung Google)
   get sid()  { return localStorage.getItem('en_sid')  || DEFAULT_SID; },
   get gid1() { return localStorage.getItem('en_gid1') || DEFAULT_GID1; },
-  get gidAqApr() { return localStorage.getItem('en_gid_aq_apr') || DEFAULT_GID_AQ_APR; },
-  get gidAqMei() { return localStorage.getItem('en_gid_aq_mei') || DEFAULT_GID_AQ_MEI; },
-  get gidAqJun() { return localStorage.getItem('en_gid_aq_jun') || DEFAULT_GID_AQ_JUN; },
   get ref()  { return parseInt(localStorage.getItem('en_ref') || '5'); },
   get gkey() { return localStorage.getItem('en_gkey') || ''; },
 };
@@ -561,6 +565,27 @@ function cleanNum(v) {
   return n;
 }
 
+// ─── PARSE TAB BULANAN "Pemakaian Listrik Harian" (Januari..Juni) ──────────
+// Format sheet: baris judul "DATA KONSUMSI LISTRIK HARIAN", lalu header 2 baris,
+// lalu satu baris per tanggal: A=Tanggal, B=Stand WBP, C=Stand LWBP,
+// D=Pemakaian WBP, E=Pemakaian LWBP, F=Total Pemakaian (kWh, sudah dikali rasio meter).
+function parseDailyElectric(csvText) {
+  const rows = parseCSV(csvText);
+  const days = [];
+  let wbp = 0, lwbp = 0, total = 0;
+  for (const r of rows) {
+    const dateStr = (r[0] || '').trim();
+    // baris data tanggal berformat "1/2/26 2:00" dsb — cocokkan pola tanggal di awal sel
+    if (!/^\d{1,2}\/\d{1,2}\/\d{2,4}/.test(dateStr)) continue;
+    const pw = cleanNum(r[3]), pl = cleanNum(r[4]), pt = cleanNum(r[5]);
+    if (!pw && !pl && !pt) continue; // hari pertama biasanya kosong (baseline stand meter)
+    days.push({ date: dateStr.split(' ')[0], wbp: pw, lwbp: pl, total: pt });
+    wbp += pw; lwbp += pl; total += pt;
+  }
+  if (!days.length) return null;
+  return { days, wbp, lwbp, total };
+}
+
 // ─── FETCH XLSX FILE FROM GOOGLE DRIVE (file biasa, bukan Google Sheets asli) ─
 async function fetchDriveWorkbook(fileId, timeout=15000) {
   if (!fileId) return null;
@@ -617,6 +642,28 @@ function sheetCsv(wb, name) {
   const ws = wb.Sheets[name];
   if (!ws) return null;
   return XLSX.utils.sheet_to_csv(ws, { blankrows: false });
+}
+
+// ─── FETCH SHEET BY NAME (tanpa GID) — pakai Google Visualization API ──────
+// Endpoint ini CORS-safe & tidak butuh GID sama sekali, cukup nama tab persis.
+// Dipakai untuk auto-deteksi tab baru (Kualitas Udara & Pemakaian Listrik Harian):
+// begitu tab baru ditambahkan di spreadsheet dengan nama yang cocok, web ini
+// otomatis menemukannya di refresh berikutnya — tanpa perlu isi GID manual.
+async function fetchSheetByName(name, timeout=8000) {
+  const sid = CFG.sid;
+  if (!sid || !name) return null;
+  const url = `https://docs.google.com/spreadsheets/d/${sid}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(name)}`;
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), timeout);
+    const res = await fetch(url, { signal: ctrl.signal });
+    clearTimeout(timer);
+    if (!res.ok) return null; // tab dengan nama ini belum ada / tidak ditemukan
+    const text = await res.text();
+    if (/^\s*<(!doctype|html)/i.test(text)) return null; // dapat halaman login, bukan data
+    if (/^\s*(#|\/\*)/.test(text) || /invalid query|unable to parse/i.test(text)) return null; // error gviz
+    return text;
+  } catch (e) { return null; }
 }
 
 // ─── FETCH FROM GOOGLE SHEETS (legacy — dipakai jika file sudah native Google Sheets) ──
@@ -818,21 +865,37 @@ async function loadData(manual=false) {
     dataSource = 'sheets';
     via = via || 'sheets';
 
-    // ── Kualitas Udara (3 sheet terpisah: April/Mei/Juni) ──
-    const aqGids = { April: CFG.gidAqApr, Mei: CFG.gidAqMei, Juni: CFG.gidAqJun };
+    // ── Kualitas Udara — auto-deteksi tab "Kualitas udara <Bulan><YY>" (tanpa GID) ──
+    // Begitu tab bulan baru ditambahkan di spreadsheet dengan pola nama ini, otomatis
+    // ikut terbaca di refresh berikutnya — tidak perlu isi GID apa pun.
+    const nowYY = new Date().getFullYear() % 100;
+    const aqYyCandidates = [nowYY, nowYY - 1];
     let aqLoaded = 0;
-    for (const bln in aqGids) {
-      const gid = aqGids[bln];
-      if (!gid) continue;
-      try {
-        const csvAq = await fetchSheet(gid);
-        if (csvAq && !/^\s*<(!doctype|html)/i.test(csvAq)) {
-          const parsedAq = parseAirSheet(csvAq);
-          if (parsedAq) { AQ.months[bln] = parsedAq.avg; AQ.baseline = parsedAq.baseline; if (bln==='Juni') AQ.floors = parsedAq.floors; aqLoaded++; }
-        }
-      } catch(e) { /* satu bulan gagal, lanjut yang lain */ }
+    for (const bln of ID_MONTHS) {
+      let parsedAq = null;
+      for (const yy of aqYyCandidates) {
+        const csvAq = await fetchSheetByName(`Kualitas udara ${bln}${yy}`);
+        if (csvAq) { parsedAq = parseAirSheet(csvAq); if (parsedAq) break; }
+      }
+      if (parsedAq) {
+        AQ.months[bln] = parsedAq.avg;
+        AQ.baseline = parsedAq.baseline;
+        AQ.floors = parsedAq.floors; // selalu ditimpa → otomatis pakai bulan terbaru yang ditemukan
+        aqLoaded++;
+      }
     }
-    if (!aqLoaded) msgs.push('Kualitas Udara: GID belum diisi / gagal diambil, memakai data cadangan');
+    if (!aqLoaded) msgs.push('Kualitas Udara: tab "Kualitas udara <Bulan><Tahun>" belum ditemukan, memakai data cadangan');
+
+    // ── Pemakaian Listrik Harian — auto-deteksi tab per nama bulan (Januari..Desember, tanpa GID) ──
+    // Tab baru (mis. "Juli") otomatis ikut muncul di refresh berikutnya, tanpa konfigurasi apa pun.
+    let melecLoaded = 0;
+    for (const bln of MELEC_MONTHS) {
+      const csvM = await fetchSheetByName(bln);
+      let parsedM = csvM ? parseDailyElectric(csvM) : null;
+      MELEC[bln] = parsedM;
+      if (parsedM) melecLoaded++;
+    }
+    if (!melecLoaded) msgs.push('Pemakaian Listrik Harian: belum ada tab bulanan (Januari, Februari, dst.) yang terbaca');
 
     setSyb('live');
     const now = new Date().toLocaleTimeString('id-ID');
@@ -896,7 +959,7 @@ function renderCurrent() {
 
 function render(id) {
   if (id==='db') rDb();
-  else if (id==='el') rOpex('el', D.el_bud, D.el_use, '⚡', 'elec');
+  else if (id==='el') { rOpex('el', D.el_bud, D.el_use, '⚡', 'elec'); rElDaily(); }
   else if (id==='wa') rOpex('wa', D.wa_bud, D.wa_use, '💧', 'water');
   else if (id==='ew') rEw();
   else if (id==='ik') rIk();
@@ -905,6 +968,61 @@ function render(id) {
   else if (id==='ch') rCh();
   else if (id==='aw') rAw();
   else if (id==='ai') initAI();
+}
+
+// ─── PEMAKAIAN LISTRIK HARIAN (Jan-Jun 2026) ───────────────────────────────
+function melecSelectMonth(bln) {
+  melecActiveMonth = bln;
+  rElDailyChart();
+}
+
+function rElDaily() {
+  const loaded = MELEC_MONTHS.filter(b => MELEC[b]);
+  const tTotal = loaded.reduce((a,b) => a + MELEC[b].total, 0);
+  const tWbp = loaded.reduce((a,b) => a + MELEC[b].wbp, 0);
+  const tLwbp = loaded.reduce((a,b) => a + MELEC[b].lwbp, 0);
+  const tDays = loaded.reduce((a,b) => a + MELEC[b].days.length, 0);
+  const avgPerDay = tDays > 0 ? tTotal/tDays : 0;
+
+  document.getElementById('el-daily-kpi').innerHTML =
+    kc('elec','Total Pemakaian', loaded.length ? idr(tTotal)+' kWh' : '-', loaded.length+' bulan terdeteksi otomatis') +
+    kc('amb','WBP (Beban Puncak)', loaded.length ? idr(tWbp)+' kWh' : '-', tTotal>0?(tWbp/tTotal*100).toFixed(1)+'% dari total':'-') +
+    kc('blu','LWBP (Luar Beban Puncak)', loaded.length ? idr(tLwbp)+' kWh' : '-', tTotal>0?(tLwbp/tTotal*100).toFixed(1)+'% dari total':'-') +
+    kc('pri','Rata-rata Harian', avgPerDay ? idr(avgPerDay)+' kWh/hari' : '-', tDays+' hari tercatat');
+
+  document.getElementById('el-daily-tb').innerHTML = loaded.length ? loaded.map(bln => {
+    const m = MELEC[bln];
+    const avg = m.days.length ? m.total/m.days.length : 0;
+    return `<tr>
+      <td style="font-weight:700;">${bln}</td>
+      <td style="text-align:center;">${m.days.length}</td>
+      <td style="text-align:right;">${idr(m.wbp)}</td>
+      <td style="text-align:right;">${idr(m.lwbp)}</td>
+      <td style="text-align:right;font-weight:700;">${idr(m.total)}</td>
+      <td style="text-align:right;">${idr(avg)}</td>
+    </tr>`;
+  }).join('') : `<tr><td colspan="6" style="text-align:center;color:var(--t2);">Belum ada tab bulanan (mis. "Januari", "Februari") yang terdeteksi di spreadsheet</td></tr>`;
+
+  // dropdown bulan dibangun otomatis dari bulan yang datanya benar-benar ditemukan
+  const sel = document.getElementById('el-daily-month');
+  if (sel) {
+    sel.innerHTML = loaded.map(bln => `<option value="${bln}">${bln}</option>`).join('');
+    if (!loaded.includes(melecActiveMonth)) melecActiveMonth = loaded[loaded.length-1] || '';
+    sel.value = melecActiveMonth;
+  }
+  rElDailyChart();
+}
+
+function rElDailyChart() {
+  const m = MELEC[melecActiveMonth];
+  if (!m) {
+    mk('el-daily-c', {type:'line', data:{labels:[], datasets:[]}, options:{responsive:true,maintainAspectRatio:false}});
+    return;
+  }
+  mk('el-daily-c', {type:'line', data:{labels:m.days.map(d=>d.date), datasets:[
+    {label:'Total (kWh)', data:m.days.map(d=>d.total), borderColor:'var(--elec)', backgroundColor:'rgba(230,81,0,.1)', fill:true, tension:.3, pointRadius:2, borderWidth:2},
+  ]}, options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},boxWidth:10}}},
+    scales:{y:{ticks:{font:{size:9},callback:v=>idr(v)}},x:{ticks:{font:{size:8},maxRotation:60,minRotation:60}}}}});
 }
 
 // ─── OPEX BUILDER ──────────────────────────────────────────────────────────
@@ -1086,7 +1204,7 @@ function rCo() {
 }
 
 // ─── KUALITAS UDARA ─────────────────────────────────────────────────────────
-const AQ_ORDER = ['April','Mei','Juni'];
+const AQ_ORDER = ID_MONTHS; // otomatis pakai bulan mana pun yang datanya ditemukan
 const AQ_LABEL = {suhu:'Suhu',rh:'RH',hcho:'HCHO',pm25:'PM2.5',tvoc:'TVOC',co:'CO',co2:'CO₂',aqi:'AQI'};
 function aqStatus(m) {
   // status per bulan: berapa dari 8 parameter yang masih di bawah baseline
@@ -1276,9 +1394,6 @@ function rDb() {
 function openSet() {
   document.getElementById('cfg-sid').value    = CFG.sid;
   document.getElementById('cfg-gid1').value   = CFG.gid1;
-  document.getElementById('cfg-gid-aq-apr').value = CFG.gidAqApr;
-  document.getElementById('cfg-gid-aq-mei').value = CFG.gidAqMei;
-  document.getElementById('cfg-gid-aq-jun').value = CFG.gidAqJun;
   document.getElementById('cfg-drive').value  = CFG.driveId;
   document.getElementById('cfg-sheet1').value = CFG.sheet1;
   document.getElementById('cfg-refresh').value = String(CFG.ref);
@@ -1291,9 +1406,6 @@ function closeSet() { document.getElementById('set-panel').classList.remove('ope
 function saveSet() {
   const sid  = document.getElementById('cfg-sid').value.trim();
   const gid1 = document.getElementById('cfg-gid1').value.trim();
-  const gidAqApr = document.getElementById('cfg-gid-aq-apr').value.trim();
-  const gidAqMei = document.getElementById('cfg-gid-aq-mei').value.trim();
-  const gidAqJun = document.getElementById('cfg-gid-aq-jun').value.trim();
   const driveRaw = document.getElementById('cfg-drive').value.trim();
   const driveId  = extractDriveId(driveRaw);
   const sh1  = document.getElementById('cfg-sheet1').value.trim();
@@ -1306,9 +1418,6 @@ function saveSet() {
   }
   localStorage.setItem('en_sid',  sid);
   localStorage.setItem('en_gid1', gid1);
-  localStorage.setItem('en_gid_aq_apr', gidAqApr);
-  localStorage.setItem('en_gid_aq_mei', gidAqMei);
-  localStorage.setItem('en_gid_aq_jun', gidAqJun);
   localStorage.setItem('en_drive', driveId);
   localStorage.setItem('en_sh1',   sh1 || DEFAULT_SHEET1);
   localStorage.setItem('en_ref',  ref);
