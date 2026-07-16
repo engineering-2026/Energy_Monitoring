@@ -12,22 +12,22 @@
 :root{--bg:#f2f7f3;--card:#fff;--nav:#0F3D2E;--nav2:#14532D;--pri:#1D9E75;--t:#12261d;--t2:#5f7267;--bd:#dbe7de;--red:#dc2626;--amb:#d97706;--blu:#0d9488;--elec:#E65100;--water:#0277BD;--co2:#2E7D32;--leaf:#84CC16;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--t);display:flex;height:100vh;overflow:hidden;font-size:13px;}
-.sb{width:210px;background:linear-gradient(180deg,var(--nav) 0%,var(--nav2) 100%);display:flex;flex-direction:column;flex-shrink:0;}
-.sb-logo{padding:13px 15px 10px;border-bottom:1px solid rgba(255,255,255,.08);}
-.sb-logo h1{font-size:13px;font-weight:700;color:#fff;}
-.sb-logo p{font-size:9px;color:rgba(255,255,255,.45);margin-top:2px;}
-.eco-badge{display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-size:8.5px;font-weight:600;color:#bbf7d0;background:rgba(132,204,22,.15);border:1px solid rgba(132,204,22,.35);padding:2px 7px;border-radius:99px;}
+.sb{width:210px;background:#ffffff;border-right:1px solid var(--bd);display:flex;flex-direction:column;flex-shrink:0;}
+.sb-logo{padding:13px 15px 10px;border-bottom:1px solid var(--bd);}
+.sb-logo h1{font-size:13px;font-weight:700;color:var(--nav);}
+.sb-logo p{font-size:9px;color:var(--t2);margin-top:2px;}
+.eco-badge{display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-size:8.5px;font-weight:600;color:#166534;background:#f0fdf4;border:1px solid #bbf7d0;padding:2px 7px;border-radius:99px;}
 .sb-nav{flex:1;padding:5px 0;overflow-y:auto;}
-.nb{display:flex;align-items:center;gap:8px;width:100%;padding:8px 13px;background:none;border:none;color:rgba(255,255,255,.55);font-size:11.5px;cursor:pointer;text-align:left;border-left:3px solid transparent;transition:all .15s;}
-.nb:hover{background:rgba(255,255,255,.07);color:#fff;}
-.nb.on{background:rgba(255,255,255,.11);color:#fff;border-left-color:var(--pri);}
+.nb{display:flex;align-items:center;gap:8px;width:100%;padding:8px 13px;background:none;border:none;color:var(--t2);font-size:11.5px;cursor:pointer;text-align:left;border-left:3px solid transparent;transition:all .15s;}
+.nb:hover{background:#f0fdf4;color:var(--nav);}
+.nb.on{background:#eafbf1;color:var(--nav);font-weight:600;border-left-color:var(--pri);}
 .nb .ic{font-size:13px;flex-shrink:0;transition:transform .15s ease;}
 .nb:hover .ic{transform:translateX(2px) scale(1.1);}
-.sb-sect{font-size:8.5px;color:rgba(255,255,255,.28);padding:9px 13px 3px;text-transform:uppercase;letter-spacing:.8px;font-weight:600;}
-.sb-sep{height:1px;background:rgba(255,255,255,.07);margin:4px 11px;}
-.sb-foot{padding:9px 13px;border-top:1px solid rgba(255,255,255,.07);}
-.sb-foot .role{font-size:11px;font-weight:600;color:#fff;}
-.sb-foot .org{font-size:9px;color:rgba(255,255,255,.35);margin-top:1px;}
+.sb-sect{font-size:8.5px;color:#9ca8a1;padding:9px 13px 3px;text-transform:uppercase;letter-spacing:.8px;font-weight:600;}
+.sb-sep{height:1px;background:var(--bd);margin:4px 11px;}
+.sb-foot{padding:9px 13px;border-top:1px solid var(--bd);}
+.sb-foot .role{font-size:11px;font-weight:600;color:var(--nav);}
+.sb-foot .org{font-size:9px;color:var(--t2);margin-top:1px;}
 .mn{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 .topbar{background:var(--card);border-bottom:1px solid var(--bd);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
 .topbar h2{font-size:13px;font-weight:600;}
@@ -153,7 +153,42 @@ tr:hover td{background:#f0fdf4;}
 .typing-dot span:nth-child(2){animation-delay:.2s;}
 .typing-dot span:nth-child(3){animation-delay:.4s;}
 @keyframes td{0%,60%,100%{opacity:.2}30%{opacity:1}}
-
+/* HERO / GREEN BUILDING SCORE (Dashboard) */
+.hero{background:linear-gradient(135deg,#ffffff 0%,#f4fbf6 55%,#eafbf1 100%);border:1px solid var(--bd);border-radius:16px;padding:22px 24px;margin-bottom:14px;display:grid;grid-template-columns:1.5fr 1fr;gap:20px;position:relative;overflow:hidden;color:var(--t);box-shadow:0 8px 24px rgba(15,61,46,.06);}
+.hero::before{content:'';position:absolute;right:-50px;top:-70px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(132,204,22,.14),transparent 70%);}
+.hero::after{content:'🏢';position:absolute;right:26px;bottom:8px;font-size:80px;opacity:.08;line-height:1;}
+.hero-l{position:relative;z-index:1;}
+.hero-l h1{font-size:21px;font-weight:800;letter-spacing:.2px;color:var(--nav);}
+.hero-l h1 span{color:var(--pri);}
+.hero-l p{font-size:11.5px;color:var(--t2);margin-top:5px;max-width:440px;line-height:1.6;}
+.hero-icons{display:flex;gap:9px;margin-top:16px;flex-wrap:wrap;}
+.hero-ic{display:flex;flex-direction:column;align-items:center;gap:4px;background:#fff;border:1px solid var(--bd);border-radius:12px;padding:9px 14px;font-size:9.5px;color:var(--t2);font-weight:600;cursor:pointer;transition:all .15s;min-width:66px;box-shadow:0 2px 6px rgba(15,61,46,.04);}
+.hero-ic:hover{background:#f0fdf4;border-color:var(--pri);color:var(--pri);transform:translateY(-2px);box-shadow:0 6px 14px rgba(15,61,46,.1);}
+.hero-ic .e{font-size:18px;}
+.hero-r{position:relative;z-index:1;display:flex;align-items:center;gap:16px;background:#fff;border:1px solid var(--bd);border-radius:14px;padding:16px;box-shadow:0 4px 14px rgba(15,61,46,.06);}
+.gb-ring{position:relative;width:100px;height:100px;flex-shrink:0;}
+.gb-ring svg{transform:rotate(-90deg);}
+.gb-ring-bg{fill:none;stroke:#eef2ee;stroke-width:9;}
+.gb-ring-fg{fill:none;stroke:#84CC16;stroke-width:9;stroke-linecap:round;transition:stroke-dashoffset 1s ease;}
+.gb-ring-txt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.gb-ring-txt b{font-size:24px;line-height:1;color:var(--nav);}
+.gb-ring-txt span{font-size:8px;color:var(--t2);margin-top:2px;letter-spacing:.5px;}
+.gb-bars{flex:1;display:flex;flex-direction:column;gap:8px;}
+.gb-bar-row{font-size:9.5px;color:var(--t2);}
+.gb-bar-row .lbl{display:flex;justify-content:space-between;margin-bottom:3px;}
+.gb-bar-row .lbl b{color:var(--t);font-weight:700;}
+.gb-track{height:5px;border-radius:99px;background:#eef2ee;overflow:hidden;}
+.gb-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#1D9E75,#84CC16);}
+.env-impact{display:flex;align-items:center;gap:16px;background:linear-gradient(120deg,#f0fdf4,#ecfdf5);border:1px solid #bbf7d0;border-radius:12px;padding:14px 16px;margin-bottom:12px;}
+.env-impact .ico{font-size:30px;flex-shrink:0;}
+.env-impact .val{font-size:20px;font-weight:800;color:#166534;}
+.env-impact .sub{font-size:10px;color:var(--t2);margin-top:1px;}
+.env-eq{display:flex;gap:18px;margin-left:auto;}
+.env-eq div{text-align:center;font-size:9.5px;color:var(--t2);}
+.env-eq b{display:block;font-size:15px;color:#166534;font-weight:700;}
+.weather-chip{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--t2);padding:3px 9px;border:1px solid var(--bd);border-radius:99px;}
+.greet{font-size:9.5px;color:var(--t2);}
+.greet b{color:var(--t);font-weight:600;}
 </style>
 </head>
 <body>
@@ -209,9 +244,21 @@ tr:hover td{background:#f0fdf4;}
     </div>
     <div class="set-divider"></div>
     <div class="set-group">
-      <div class="set-label">🤖 Groq API Key (AI Assistant)</div>
-      <input class="set-input" id="cfg-gkey" type="password" placeholder="gsk_xxxxxxxxxxxxxxxxxxxx">
-      <div class="set-hint">Daftar gratis di <b>console.groq.com</b> → Create API Key.<br>Gratis 14.400 request/hari. Key disimpan di browser ini saja.</div>
+      <div class="set-label">🤖 AI Assistant — Provider</div>
+      <select class="set-input" id="cfg-aiprovider" onchange="toggleAIProviderFields()">
+        <option value="openai">OpenAI (GPT)</option>
+        <option value="claude">Claude (Anthropic)</option>
+      </select>
+    </div>
+    <div class="set-group" id="grp-openai">
+      <div class="set-label">🔑 OpenAI API Key</div>
+      <input class="set-input" id="cfg-openaikey" type="password" placeholder="sk-xxxxxxxxxxxxxxxxxxxx">
+      <div class="set-hint">Dari <b>platform.openai.com/api-keys</b>. Model: <code>gpt-4o-mini</code>. Key disimpan di browser ini saja.</div>
+    </div>
+    <div class="set-group" id="grp-claude" style="display:none;">
+      <div class="set-label">🔑 Claude (Anthropic) API Key</div>
+      <input class="set-input" id="cfg-claudekey" type="password" placeholder="sk-ant-xxxxxxxxxxxxxxxxxxxx">
+      <div class="set-hint">Dari <b>console.anthropic.com</b> → API Keys. Model: <code>claude-haiku-4-5</code>. Key disimpan di browser ini saja.</div>
     </div>
   </div>
   <div class="set-foot">
@@ -255,6 +302,7 @@ tr:hover td{background:#f0fdf4;}
   <div class="topbar">
     <div><h2 id="pt">Dashboard</h2><p id="last-upd">Memuat data...</p></div>
     <div class="tb-r">
+      <span class="weather-chip" id="weather-chip">🌤️ Jakarta —</span>
       <div class="syb local" id="syb"><div class="dot y" id="sy-dot"></div><span id="sy-txt">Menghubungkan...</span></div>
       <button class="btn" onclick="loadData(true)">🔄 Refresh</button>
       <div class="notif-wrap">
@@ -270,6 +318,30 @@ tr:hover td{background:#f0fdf4;}
   <div class="ct">
 
     <div class="vw on" id="vw-db">
+      <div class="hero">
+        <div class="hero-l">
+          <h1>🌿 Wisma 46 <span>Green Building</span> Energy Monitoring</h1>
+          <p>Pemantauan real-time konsumsi listrik, air, IKE, dan emisi CO₂ untuk kinerja gedung berkelanjutan — 50 lantai, 200+ tenant.</p>
+          <div class="hero-icons">
+            <div class="hero-ic" onclick="go('el')"><span class="e">⚡</span>Electric</div>
+            <div class="hero-ic" onclick="go('wa')"><span class="e">💧</span>Water</div>
+            <div class="hero-ic" onclick="go('aq')"><span class="e">🌬️</span>Kualitas Udara</div>
+            <div class="hero-ic" onclick="go('co')"><span class="e">🌍</span>CO₂</div>
+            <div class="hero-ic" onclick="go('ik')"><span class="e">📐</span>IKE</div>
+          </div>
+        </div>
+        <div class="hero-r">
+          <div class="gb-ring">
+            <svg width="100" height="100" viewBox="0 0 100 100">
+              <circle class="gb-ring-bg" cx="50" cy="50" r="42"></circle>
+              <circle class="gb-ring-fg" id="gb-ring-fg" cx="50" cy="50" r="42" stroke-dasharray="264" stroke-dashoffset="264"></circle>
+            </svg>
+            <div class="gb-ring-txt"><b id="gb-score">–</b><span>SCORE</span></div>
+          </div>
+          <div class="gb-bars" id="gb-bars"></div>
+        </div>
+      </div>
+      <div class="env-impact" id="env-impact"></div>
       <div class="kpi4" id="db-kpi1"></div>
       <div class="kpi4" id="db-kpi2"></div>
       <div class="g2">
@@ -352,7 +424,11 @@ tr:hover td{background:#f0fdf4;}
 
       <div class="kpi4" id="ike3y-kpi" style="margin-top:14px;"></div>
       <div class="g2">
-        <div class="cd"><div class="cd-t">📊 KWH PLN — Perbandingan 3 Tahun</div><div style="height:210px;"><canvas id="ike3y-c1"></canvas></div></div>
+        <div class="cd"><div class="cd-t">📈 Total Tahunan KWH PLN — Perbandingan 3 Tahun</div><div style="height:220px;"><canvas id="ike3y-c3"></canvas></div></div>
+        <div class="cd"><div class="cd-t">🏢 Landlord vs 🏬 Tenant — Total per Tahun</div><div style="height:220px;"><canvas id="ike3y-c4"></canvas></div></div>
+      </div>
+      <div class="g2">
+        <div class="cd"><div class="cd-t">📊 KWH PLN — Tren Bulanan 3 Tahun</div><div style="height:210px;"><canvas id="ike3y-c1"></canvas></div></div>
         <div class="cd"><div class="cd-t">🏢 Landlord vs 🏬 Tenant vs ❄️ Chiller (kWh) — Tahun Berjalan</div><div style="height:210px;"><canvas id="ike3y-c2"></canvas></div></div>
       </div>
       <div class="tw"><div class="tw-h"><span class="tw-title">📊 Data Konsumsi Energi Listrik & IKE — Histori 3 Tahun</span></div>
@@ -410,10 +486,7 @@ tr:hover td{background:#f0fdf4;}
 
 <div class="vw" id="vw-ai" style="padding:0;">
     <div class="ai-wrap">
-      <div id="ai-key-notice" class="ai-key-notice" style="display:none;">
-        ⚠️ <b>Groq API Key belum diisi.</b> Buka <b>⚙️ Pengaturan</b> → isi Groq API Key → Simpan.<br>
-        Daftar gratis di <a href="https://console.groq.com" target="_blank" style="color:var(--pri);">console.groq.com</a> — 14.400 request/hari.
-      </div>
+      <div id="ai-key-notice" class="ai-key-notice" style="display:none;"></div>
       <div class="ai-chips" id="ai-chips">
         <span class="ai-chip" onclick="askAI('Ringkasan konsumsi energi bulan ini')">📊 Ringkasan bulan ini</span>
         <span class="ai-chip" onclick="askAI('Apakah nilai IKE sudah sesuai baseline 20 kWh/m² untuk gedung perkantoran?')">📐 Status IKE</span>
@@ -515,6 +588,24 @@ function extractDriveId(input) {
   return s;
 }
 
+// ─── LOCAL CACHE (ketahanan) ─────────────────────────────────────────────
+// Kalau live fetch gagal sesaat (jaringan/limit rate/dll), pakai data hasil
+// fetch SUKSES terakhir (disimpan di browser ini) alih-alih langsung kosong.
+// Ini beda dari FALLBACK statis (bawaan kode) — cache ini nyata dari sheet asli.
+const CACHE_KEY = 'en_cache_v1';
+function saveCache() {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ D, AQ, MELEC, IKE3Y, ts: Date.now() }));
+  } catch(e) { /* storage penuh/diblokir — abaikan, bukan fatal */ }
+}
+function loadCache() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch(e) { return null; }
+}
+
 const CFG = {
   get driveId() { return localStorage.getItem('en_drive') || DEFAULT_DRIVE_ID; },
   get sheet1()  { return localStorage.getItem('en_sh1')   || DEFAULT_SHEET1; },
@@ -522,7 +613,9 @@ const CFG = {
   get sid()  { return localStorage.getItem('en_sid')  || DEFAULT_SID; },
   get gid1() { return localStorage.getItem('en_gid1') || DEFAULT_GID1; },
   get ref()  { return parseInt(localStorage.getItem('en_ref') || '5'); },
-  get gkey() { return localStorage.getItem('en_gkey') || ''; },
+  get aiProvider() { return localStorage.getItem('en_aiprovider') || 'openai'; },
+  get openaiKey()  { return localStorage.getItem('en_openaikey') || ''; },
+  get claudeKey()  { return localStorage.getItem('en_claudekey') || ''; },
 };
 
 // ─── HELPERS ───────────────────────────────────────────────────────────────
@@ -778,7 +871,7 @@ function parseIkeHistory3Y(rows) {
   for (let i = 0; i < rows.length && titleRow < 0; i++) {
     for (let ci = 0; ci < rows[i].length; ci++) {
       const t = norm(rows[i][ci]);
-      if (t.includes('konsumsi energi listrik') && t.includes('ike')) { titleRow = i; titleCol = ci; break; }
+      if (t.includes('konsumsi') && t.includes('listrik') && t.length > 12) { titleRow = i; titleCol = ci; break; }
     }
   }
   if (titleRow < 0) return null;
@@ -1051,18 +1144,32 @@ async function loadData(manual=false) {
     document.getElementById('last-upd').textContent = `Data dari ${via==='drive'?'Google Drive (xlsx)':'Google Sheets'} · Update: ${now}` + (msgs.length?` · ⚠️ ${msgs.join('; ')}`:'');
     document.getElementById('set-msg').textContent = '✅ Terhubung, data berhasil dimuat' + (msgs.length?` (${msgs.join('; ')})`:'');
     document.getElementById('set-msg').className = 'set-msg ok';
+    saveCache();
 
   } catch(e) {
-    dataSource = 'fallback';
-    D = JSON.parse(JSON.stringify(FALLBACK));
-    AQ = JSON.parse(JSON.stringify(AQ_FALLBACK));
-    IKE3Y = null;
-    setSyb('local');
-    const msg = (CFG.driveId||CFG.sid) ? `⚠️ Gagal ambil data — ${e.message}` : '⚠️ Belum ada koneksi';
-    document.getElementById('last-upd').textContent = `Data cadangan (embedded) · ${msg}`;
-    if (CFG.driveId||CFG.sid) {
-      document.getElementById('set-msg').textContent = `❌ ${e.message}`;
-      document.getElementById('set-msg').className = 'set-msg err';
+    const cached = loadCache();
+    if (cached) {
+      D = cached.D; AQ = cached.AQ; MELEC = cached.MELEC; IKE3Y = cached.IKE3Y;
+      dataSource = 'cache';
+      setSyb('cache');
+      const ts = new Date(cached.ts).toLocaleString('id-ID');
+      document.getElementById('last-upd').textContent = `⚠️ Gagal ambil data terbaru (${e.message}) — menampilkan cache data terakhir yang berhasil dimuat: ${ts}`;
+      if (CFG.driveId||CFG.sid) {
+        document.getElementById('set-msg').textContent = `⚠️ ${e.message} — memakai cache tersimpan (${ts})`;
+        document.getElementById('set-msg').className = 'set-msg err';
+      }
+    } else {
+      dataSource = 'fallback';
+      D = JSON.parse(JSON.stringify(FALLBACK));
+      AQ = JSON.parse(JSON.stringify(AQ_FALLBACK));
+      IKE3Y = null;
+      setSyb('local');
+      const msg = (CFG.driveId||CFG.sid) ? `⚠️ Gagal ambil data — ${e.message}` : '⚠️ Belum ada koneksi';
+      document.getElementById('last-upd').textContent = `Data cadangan (embedded) · ${msg}`;
+      if (CFG.driveId||CFG.sid) {
+        document.getElementById('set-msg').textContent = `❌ ${e.message}`;
+        document.getElementById('set-msg').className = 'set-msg err';
+      }
     }
   }
 
@@ -1077,9 +1184,9 @@ function setSyb(state) {
   const el = document.getElementById('syb');
   const dot = document.getElementById('sy-dot');
   const txt = document.getElementById('sy-txt');
-  el.className = `syb ${state==='live'?'live':state==='loading'?'local':'local'}`;
-  dot.className = `dot ${state==='live'?'g':state==='loading'?'y':'y'}`;
-  txt.textContent = state==='live' ? 'Live · Sheets' : state==='loading' ? 'Menghubungkan...' : 'Data cadangan';
+  el.className = `syb ${state==='live'?'live':state==='loading'?'local':state==='cache'?'err':'local'}`;
+  dot.className = `dot ${state==='live'?'g':state==='loading'?'y':state==='cache'?'y':'y'}`;
+  txt.textContent = state==='live' ? 'Live · Sheets' : state==='loading' ? 'Menghubungkan...' : state==='cache' ? 'Cache tersimpan' : 'Data cadangan';
 }
 
 function scheduleRefresh() {
@@ -1207,6 +1314,8 @@ function rIke3y() {
     document.getElementById('ike3y-note').textContent = '';
     mk('ike3y-c1',{type:'line',data:{labels:[],datasets:[]},options:{responsive:true,maintainAspectRatio:false}});
     mk('ike3y-c2',{type:'bar',data:{labels:[],datasets:[]},options:{responsive:true,maintainAspectRatio:false}});
+    mk('ike3y-c3',{type:'bar',data:{labels:[],datasets:[]},options:{responsive:true,maintainAspectRatio:false}});
+    mk('ike3y-c4',{type:'bar',data:{labels:[],datasets:[]},options:{responsive:true,maintainAspectRatio:false}});
     return;
   }
   const years = IKE3Y.years;
@@ -1216,6 +1325,9 @@ function rIke3y() {
   const monthLabels = curData.map(d => d.month);
 
   const totalsByYear = years.map(yr => IKE3Y.data[yr].filter(d => d.kwh > 0).reduce((a, d) => a + d.kwh, 0));
+  const landlordTotalsByYear = years.map(yr => IKE3Y.data[yr].filter(d => d.kwh > 0).reduce((a, d) => a + d.landlordKwh, 0));
+  const tenantTotalsByYear = years.map(yr => IKE3Y.data[yr].filter(d => d.kwh > 0).reduce((a, d) => a + d.tenantKwh, 0));
+  const monthsCountByYear = years.map(yr => IKE3Y.data[yr].filter(d => d.kwh > 0).length);
   const curTotal = totalsByYear[totalsByYear.length - 1];
   const prevTotal = totalsByYear.length > 1 ? totalsByYear[totalsByYear.length - 2] : 0;
   const yoy = prevTotal > 0 ? (curTotal - prevTotal) / prevTotal * 100 : 0;
@@ -1228,6 +1340,22 @@ function rIke3y() {
     kc('amb', 'Total Tenant', idr(curMonthsWithData.reduce((a, d) => a + d.tenantKwh, 0)) + ' kWh', `Tahun ${curYear}`);
 
   const palette = ['#94a3b8', '#0d9488', '#E65100', '#7c3aed'];
+
+  // ── Chart baru: total tahunan KWH PLN, 3 tahun (menyorot tahun berjalan sbg YTD) ──
+  const yearBarColors = years.map((yr, i) => i === years.length - 1 ? '#84CC16' : '#0d9488');
+  mk('ike3y-c3', { type:'bar', data:{ labels: years.map((yr,i)=> i===years.length-1 ? `${yr} (YTD ${monthsCountByYear[i]} bln)` : yr),
+    datasets:[{ label:'Total kWh PLN', data: totalsByYear, backgroundColor: yearBarColors, borderRadius:6, barThickness:46 }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false},
+      tooltip:{ callbacks:{ label: ctx => `${idr(ctx.parsed.y)} kWh` } } },
+      scales:{ y:{ticks:{font:{size:9},callback:v=>idr(v)}}, x:{ticks:{font:{size:10,weight:'600'}}} } } });
+
+  // ── Chart baru: Landlord vs Tenant total per tahun (grouped bar, 3 tahun) ──
+  mk('ike3y-c4', { type:'bar', data:{ labels: years, datasets:[
+    { label:'Landlord', data: landlordTotalsByYear, backgroundColor:'rgba(2,119,189,.85)', borderRadius:4 },
+    { label:'Tenant', data: tenantTotalsByYear, backgroundColor:'rgba(217,119,6,.85)', borderRadius:4 },
+  ]}, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{labels:{font:{size:10},boxWidth:10}} },
+    scales:{ y:{ticks:{font:{size:9},callback:v=>idr(v)}}, x:{ticks:{font:{size:10}}} } } });
+
   mk('ike3y-c1', { type:'line', data:{ labels: monthLabels, datasets: years.map((yr, yi) => ({
     label: yr,
     data: monthLabels.map((_, mi) => (IKE3Y.data[yr][mi] && IKE3Y.data[yr][mi].kwh > 0) ? IKE3Y.data[yr][mi].kwh : null),
@@ -1627,6 +1755,41 @@ function rDb() {
     {label:'CO₂ (Ton)',data:co2V,borderColor:'#2E7D32',backgroundColor:'rgba(46,125,50,.1)',fill:true,tension:.4,pointRadius:5,borderWidth:2},
     {label:'Baseline 2025',data:active.map(()=>D.base_co2),borderColor:'#dc2626',borderDash:[5,3],borderWidth:1.5,pointRadius:0,fill:false},
   ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},boxWidth:10}}},scales:{y:{ticks:{font:{size:9},callback:v=>v.toFixed(0)+' T'},min:700},x:{ticks:{font:{size:9}}}}}});
+
+  // ── Green Building Score — dihitung dari data nyata (bukan angka statis) ──
+  const clamp = v => Math.max(0, Math.min(100, v));
+  const energyScore = clamp(100 - Math.max(0, (avgIKE - IKE_TARGET) / IKE_TARGET * 100));
+  const waterScore  = clamp(100 - Math.max(0, aP_wa - 100));
+  const budgetScore = clamp(100 - Math.max(0, aP_el - 100));
+  const baseCo2Avg = D.base_co2 ? D.base_co2 : null;
+  const avgCo2 = co2V.length ? co2V.reduce((a,b)=>a+b,0)/co2V.length : 0;
+  const carbonScore = baseCo2Avg ? clamp(100 - Math.max(0, (avgCo2 - baseCo2Avg) / baseCo2Avg * 100)) : clamp(100 - avgCo2/10);
+  const overall = Math.round((energyScore + waterScore + budgetScore + carbonScore) / 4);
+
+  const circumference = 264;
+  const ring = document.getElementById('gb-ring-fg');
+  ring.style.strokeDashoffset = String(circumference * (1 - overall/100));
+  ring.style.stroke = overall >= 80 ? '#84CC16' : overall >= 60 ? '#eab308' : '#ef4444';
+  document.getElementById('gb-score').textContent = overall;
+
+  const gbar = (label, val) => `<div class="gb-bar-row"><div class="lbl"><span>${label}</span><b>${val.toFixed(0)}%</b></div><div class="gb-track"><div class="gb-fill" style="width:${val}%;"></div></div></div>`;
+  document.getElementById('gb-bars').innerHTML =
+    gbar('⚡ Efisiensi Energi (IKE)', energyScore) +
+    gbar('💧 Konservasi Air', waterScore) +
+    gbar('🌍 Reduksi Karbon', carbonScore) +
+    gbar('💰 Efisiensi Anggaran', budgetScore);
+
+  // ── Environmental Impact — CO2 saved dikonversi ke estimasi pohon (real data, bukan fiktif) ──
+  const co2SavedTon = baseCo2Avg ? Math.max(0, (baseCo2Avg - avgCo2)) * n : 0;
+  const treesEq = Math.round(co2SavedTon * 1000 / 21); // ~21 kg CO2 diserap 1 pohon dewasa / tahun (estimasi umum)
+  document.getElementById('env-impact').innerHTML = `
+    <div class="ico">🌎</div>
+    <div><div class="val">${co2SavedTon > 0 ? co2SavedTon.toFixed(1) : '0'} Ton CO₂</div><div class="sub">Estimasi penghematan emisi YTD vs baseline ${D.base_co2 ? D.base_co2+' Ton/bulan' : '-'}</div></div>
+    <div class="env-eq">
+      <div title="Estimasi: 1 pohon dewasa menyerap ±21 kg CO₂/tahun"><b>${treesEq > 0 ? idr(treesEq) : '-'}</b>Setara Pohon/Tahun*</div>
+      <div><b>${aP_el <= 100 ? '✅' : '⚠️'}</b>Status Anggaran Listrik</div>
+      <div><b>${avgIKE <= IKE_TARGET ? '✅' : '⚠️'}</b>Status IKE vs Baseline</div>
+    </div>`;
 }
 
 // ─── SETTINGS ──────────────────────────────────────────────────────────────
@@ -1636,11 +1799,20 @@ function openSet() {
   document.getElementById('cfg-drive').value  = CFG.driveId;
   document.getElementById('cfg-sheet1').value = CFG.sheet1;
   document.getElementById('cfg-refresh').value = String(CFG.ref);
-  document.getElementById('cfg-gkey').value   = CFG.gkey;
+  document.getElementById('cfg-aiprovider').value = CFG.aiProvider;
+  document.getElementById('cfg-openaikey').value  = CFG.openaiKey;
+  document.getElementById('cfg-claudekey').value  = CFG.claudeKey;
+  toggleAIProviderFields();
   document.getElementById('set-msg').textContent = '';
   document.getElementById('set-panel').classList.add('open');
 }
 function closeSet() { document.getElementById('set-panel').classList.remove('open'); }
+
+function toggleAIProviderFields() {
+  const p = document.getElementById('cfg-aiprovider').value;
+  document.getElementById('grp-openai').style.display = p === 'openai' ? 'block' : 'none';
+  document.getElementById('grp-claude').style.display = p === 'claude' ? 'block' : 'none';
+}
 
 function saveSet() {
   const sid  = document.getElementById('cfg-sid').value.trim();
@@ -1660,8 +1832,11 @@ function saveSet() {
   localStorage.setItem('en_drive', driveId);
   localStorage.setItem('en_sh1',   sh1 || DEFAULT_SHEET1);
   localStorage.setItem('en_ref',  ref);
-  localStorage.setItem('en_gkey', document.getElementById('cfg-gkey').value.trim());
+  localStorage.setItem('en_aiprovider', document.getElementById('cfg-aiprovider').value);
+  localStorage.setItem('en_openaikey', document.getElementById('cfg-openaikey').value.trim());
+  localStorage.setItem('en_claudekey', document.getElementById('cfg-claudekey').value.trim());
   closeSet();
+  initAI();
   loadData(true);
 }
 
@@ -1807,8 +1982,17 @@ Jawab dalam Bahasa Indonesia. Ringkas, profesional, dan berbasis data di atas.`;
 let AI_HIST = [];
 
 function initAI() {
-  const hasKey = !!CFG.gkey;
-  document.getElementById('ai-key-notice').style.display = hasKey ? 'none' : 'block';
+  const provider = CFG.aiProvider;
+  const hasKey = provider === 'claude' ? !!CFG.claudeKey : !!CFG.openaiKey;
+  const notice = document.getElementById('ai-key-notice');
+  if (!hasKey) {
+    notice.style.display = 'block';
+    notice.innerHTML = provider === 'claude'
+      ? '⚠️ <b>Claude API Key belum diisi.</b> Buka <b>⚙️ Pengaturan</b> → isi Claude API Key → Simpan.<br>Dapatkan key di <a href="https://console.anthropic.com" target="_blank" style="color:var(--pri);">console.anthropic.com</a>.'
+      : '⚠️ <b>OpenAI API Key belum diisi.</b> Buka <b>⚙️ Pengaturan</b> → isi OpenAI API Key → Simpan.<br>Dapatkan key di <a href="https://platform.openai.com/api-keys" target="_blank" style="color:var(--pri);">platform.openai.com</a>.';
+  } else {
+    notice.style.display = 'none';
+  }
   if (!AI_HIST.length) {
     addAIMsg('ai', '👋 Halo! Saya siap membantu menganalisis data energi Wisma 46. Silakan tanya tentang konsumsi listrik, air, IKE, emisi CO₂, atau efisiensi anggaran.');
   }
@@ -1851,9 +2035,12 @@ async function sendAI() {
   const q = input.value.trim();
   if (!q) return;
 
-  const key = CFG.gkey;
+  const provider = CFG.aiProvider;
+  const key = provider === 'claude' ? CFG.claudeKey : CFG.openaiKey;
   if (!key) {
-    addAIMsg('ai', '⚠️ Groq API Key belum diisi. Buka ⚙️ Pengaturan → isi Groq API Key → Simpan.');
+    addAIMsg('ai', provider === 'claude'
+      ? '⚠️ Claude API Key belum diisi. Buka ⚙️ Pengaturan → isi Claude API Key → Simpan.'
+      : '⚠️ OpenAI API Key belum diisi. Buka ⚙️ Pengaturan → isi OpenAI API Key → Simpan.');
     return;
   }
 
@@ -1864,37 +2051,62 @@ async function sendAI() {
 
   AI_HIST.push({ role:'user', content: q });
 
+  const systemPrompt = `Anda adalah AI analyst energi untuk Wisma 46 Kota BNI, gedung komersial 50 lantai di Jakarta, dikelola PT Swadharma Primautama. Selalu analisis berdasarkan data berikut:
+
+${buildAIContext()}`;
+
   try {
-    const ctx = buildAIContext();
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+key },
-      body: JSON.stringify({
-        model: 'llama-3.1-8b-instant',
-        max_tokens: 800,
-        messages: [
-          { role:'system', content:`Anda adalah AI analyst energi untuk Wisma 46 Kota BNI, gedung komersial 50 lantai di Jakarta, dikelola PT Swadharma Primautama. Selalu analisis berdasarkan data berikut:
-
-${ctx}` },
-          ...AI_HIST.slice(-6),
-        ]
-      })
-    });
-
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error?.message || `HTTP ${res.status}`);
+    let reply;
+    if (provider === 'claude') {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': key,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 800,
+          system: systemPrompt,
+          messages: AI_HIST.slice(-6),
+        })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(()=>({}));
+        throw new Error(err.error?.message || `HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      reply = data.content?.map(b => b.text || '').join('') || 'Tidak ada respons.';
+    } else {
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+key },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          max_tokens: 800,
+          messages: [
+            { role:'system', content: systemPrompt },
+            ...AI_HIST.slice(-6),
+          ]
+        })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(()=>({}));
+        throw new Error(err.error?.message || `HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      reply = data.choices?.[0]?.message?.content || 'Tidak ada respons.';
     }
 
-    const data = await res.json();
-    const reply = data.choices?.[0]?.message?.content || 'Tidak ada respons.';
     removeTyping();
     addAIMsg('ai', reply.replace(/\n/g, '<br>'));
     AI_HIST.push({ role:'assistant', content: reply });
 
   } catch(e) {
     removeTyping();
-    addAIMsg('ai', `❌ Error: ${e.message}. Pastikan Groq API Key valid dan koneksi internet aktif.`);
+    addAIMsg('ai', `❌ Error: ${e.message}. Pastikan API Key valid dan koneksi internet aktif.`);
     AI_HIST.pop();
   }
 
@@ -1902,8 +2114,25 @@ ${ctx}` },
   input.focus();
 }
 
+// ─── WEATHER (Jakarta, Open-Meteo — gratis, tanpa API key) ─────────────────
+const WMO_ICON = {0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌦️',
+  61:'🌧️',63:'🌧️',65:'🌧️',80:'🌦️',81:'🌧️',82:'⛈️',95:'⛈️',96:'⛈️',99:'⛈️'};
+async function initWeather() {
+  try {
+    const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=-6.21&longitude=106.82&current_weather=true&timezone=Asia%2FJakarta');
+    if (!res.ok) throw new Error();
+    const j = await res.json();
+    const w = j.current_weather;
+    const ic = WMO_ICON[w.weathercode] || '🌤️';
+    document.getElementById('weather-chip').textContent = `${ic} Jakarta ${Math.round(w.temperature)}°C`;
+  } catch(e) {
+    document.getElementById('weather-chip').textContent = '🌤️ Jakarta —';
+  }
+}
+
 // ─── INIT ──────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
+  initWeather();
   await loadData(true);
 });
 </script>
